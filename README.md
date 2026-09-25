@@ -12,7 +12,7 @@ Voor rijafstand en reistijd wordt OpenRouteService / HeiGIT gebruikt.
 
 <img width="515" height="694" alt="image" src="https://github.com/user-attachments/assets/c73918ce-8947-4ca7-83d4-c0f5461aa4a9" />
 
-<img width="946" height="1218" alt="image" src="https://github.com/user-attachments/assets/ed827cf2-155c-4326-a306-37ea9293fa64" />
+<img width="473" height="609" alt="image" src="https://github.com/user-attachments/assets/ed827cf2-155c-4326-a306-37ea9293fa64" />
 
 
 
