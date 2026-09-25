@@ -1,0 +1,25 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "KNBSB instellen",
+        "description": "Configureer het KNBSB-team en de reisinformatie.",
+        "data": {
+          "team_url": "KNBSB Team URL",
+          "ors_api_key": "OpenRouteService API-sleutel",
+          "away_arrival_minutes": "Tijd vooraf aanwezig bij uitwedstrijd (+5 min parkeren)",
+          "home_arrival_minutes": "Tijd vooraf aanwezig bij thuiswedstrijd (+5 min parkeren)"
+        },
+        "data_description": {
+          "team_url": "Plak de URL van het teamprogramma van knbsb.nl.",
+          "ors_api_key": "Persoonlijke API-sleutel voor OpenRouteService.org (FREE), nodig voor routeberekening",
+          "away_arrival_minutes": "Aantal minuten dat je vóór een uitwedstrijd aanwezig wilt zijn. De integratie telt automatisch 5 minuten parkeertijd op.",
+          "home_arrival_minutes": "Aantal minuten dat je vóór een thuiswedstrijd aanwezig wilt zijn. De integratie telt automatisch 5 minuten parkeertijd op."
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "Dit KNBSB-team is al geconfigureerd."
+    }
+  }
+}
