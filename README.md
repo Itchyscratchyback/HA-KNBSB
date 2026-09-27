@@ -19,6 +19,7 @@ Hoofdpunten van deze integratie:
 Voor rijafstand en reistijd wordt OpenRouteService.org gebruikt. Dit is een gratis service waar je kan registreren voor een eigen API key.
 
 > Dit is een onofficiële community-integratie en is niet verbonden aan of goedgekeurd door de KNBSB.
+Zie hieronder de view die de integratie ondersteudn samen met de HA-KNBSB-Card integratie
 
 ---
 
