@@ -20,7 +20,7 @@ Voor rijafstand en reistijd wordt OpenRouteService.org gebruikt. Dit is een grat
 
 > Dit is een onofficiële community-integratie en is niet verbonden aan of goedgekeurd door de KNBSB.
 
-Zie hieronder de view die de integratie ondersteudn samen met de HA-KNBSB-Card integratie
+Zie hieronder de view die de integratie ondersteunt samen met de HA-KNBSB-Card integratie
 
 ---
 
