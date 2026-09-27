@@ -2,9 +2,21 @@
 
 Een custom Home Assistant-integratie voor KNBSB-competities.
 
-De integratie haalt het wedstrijdprogramma van een KNBSB-team op en maakt wedstrijdinformatie, locaties, kalenderafspraken en reisinformatie beschikbaar binnen Home Assistant.
+Hoofdpunten van deze integratie:
 
-Voor rijafstand en reistijd wordt OpenRouteService / HeiGIT gebruikt.
+- Wedstrijdinformatie
+- locaties
+- kalender integratie
+- reisinformatie
+-   Afstand in KM
+-   Reistijd in minuten
+-   Geplande vertrektijd vanaf "zone.home"
+-   Geplande aankomst tijd op locatie
+-   Instelbare tijd aanwezig voor wedstrijden thuis of uit (wordt meegenomen in vertrektijd)
+-   One click Navigatie knop via HA-KNBSB-Card (losse integratie)
+-   Navigatie via Android Auto | Apple carplay Homeassistant Navigatie,Zones,knbsb_next_match_address
+
+Voor rijafstand en reistijd wordt OpenRouteService.org gebruikt. Dit is een gratis service waar je kan registreren voor een eigen API key.
 
 > Dit is een onofficiële community-integratie en is niet verbonden aan of goedgekeurd door de KNBSB.
 
