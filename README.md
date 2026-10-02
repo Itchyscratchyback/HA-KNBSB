@@ -18,7 +18,7 @@ Hoofdpunten van deze integratie:
 -   Geplande aankomst tijd op locatie
 -   Instelbare tijd aanwezig voor wedstrijden thuis of uit (wordt meegenomen in vertrektijd)
 -   One click Navigatie knop via HA-KNBSB-Card (losse integratie)
--   Navigatie via Android Auto | Apple carplay Homeassistant  Kies: Navigatie -> Zones -> knbsb_next_match_address
+-   Navigatie via Android Auto | Apple carplay Homeassistant  Kies: **Navigatie** -> **knbsb_next_match_address**
 
 Voor rijafstand en reistijd wordt OpenRouteService.org gebruikt. Dit is een gratis service waar je kan registreren voor een eigen API key.
 
