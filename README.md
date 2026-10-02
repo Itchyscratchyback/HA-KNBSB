@@ -1,6 +1,6 @@
 ROADMAP:
 
-~~| Basis versie met navigatie |' -> | Multi-competition versie| -> | Wedstrijd uitslagen toevoegen aan matches| -> | Alle wedstrijd uitslagen per team| -> | Competitie stand | -> | Winkans berekening | -> | Advies aan de hand van Competitie stand punten saldo en vergelijkbare matches | -> 
+| ~~Basis versie met navigatie~~ | -> | **Multi-competition versie** | -> | Wedstrijd uitslagen toevoegen aan matches| -> | Alle wedstrijd uitslagen per team| -> | Competitie stand | -> | Winkans berekening | -> | Advies aan de hand van Competitie stand punten saldo en vergelijkbare matches | -> 
 
 # KNBSB voor Home Assistant
 
