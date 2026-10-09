@@ -6,8 +6,9 @@
   ],
   "config_flow": true,
   "documentation": "https://github.com/Itchyscratchyback/HA-KNBSB",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/Itchyscratchyback/HA-KNBSB/issues",
   "requirements": [],
   "version": "0.5.0"
 }
-``
