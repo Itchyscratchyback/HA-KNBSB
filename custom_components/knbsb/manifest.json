@@ -1,12 +1,13 @@
 {
   "domain": "knbsb",
   "name": "KNBSB",
-  "version": "0.5.0",
-  "documentation": "https://github.com/Itchyscratchyback/HA-KNBSB",
-  "issue_tracker": "https://github.com/Itchyscratchyback/HA-KNBSB/issues",
-  "requirements": [],
   "codeowners": [
     "@Itchyscratchyback"
   ],
-  "config_flow": true
+  "config_flow": true,
+  "documentation": "https://github.com/Itchyscratchyback/HA-KNBSB",
+  "issue_tracker": "https://github.com/Itchyscratchyback/HA-KNBSB/issues",
+  "requirements": [],
+  "version": "0.5.0"
 }
+``
