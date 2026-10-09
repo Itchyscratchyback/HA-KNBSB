@@ -19,10 +19,26 @@ class KNBSBCalendarEntity(
         self,
         coordinator,
     ):
-        super().__init__(coordinator)
+        super().__init__(
+            coordinator
+        )
 
-        self._attr_name = "KNBSB Team"
-        self._attr_unique_id = "knbsb_calendar"
+        team_display_name = (
+            coordinator.team_display_name
+            or coordinator.team_name
+            or coordinator.club_name
+            or f"KNBSB Team {coordinator.team_slot}"
+        )
+
+        self._attr_name = (
+            f"{team_display_name} - Kalender"
+        )
+
+        self._attr_unique_id = (
+            f"knbsb_"
+            f"{coordinator.team_guid}_"
+            f"calendar"
+        )
 
 
     def _build_datetime(
@@ -45,6 +61,7 @@ class KNBSBCalendarEntity(
 
     @property
     def event(self):
+        """Return the next KNBSB match."""
 
         match = self.coordinator.data.get(
             "next_match"
@@ -79,6 +96,7 @@ class KNBSBCalendarEntity(
         start_date,
         end_date,
     ):
+        """Return KNBSB matches for the requested period."""
 
         events = []
 
@@ -86,7 +104,6 @@ class KNBSBCalendarEntity(
             "matches",
             [],
         ):
-
             start = self._build_datetime(
                 match
             )
@@ -94,6 +111,17 @@ class KNBSBCalendarEntity(
             end = start + timedelta(
                 hours=2
             )
+
+            #
+            # Alleen wedstrijden binnen het
+            # door HA gevraagde tijdvak.
+            #
+
+            if (
+                start >= end_date
+                or end <= start_date
+            ):
+                continue
 
             events.append(
                 CalendarEvent(
@@ -116,6 +144,7 @@ async def async_setup_entry(
     entry,
     async_add_entities,
 ):
+    """Set up the KNBSB calendar for this team."""
 
     coordinator = entry.runtime_data
 

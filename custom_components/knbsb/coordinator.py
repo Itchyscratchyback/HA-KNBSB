@@ -21,6 +21,7 @@ from .api import (
 from .const import (
     CONF_ORS_API_KEY,
     CONF_TEAM_URL,
+    CONF_TEAM_SLOT,
     CONF_AWAY_ARRIVAL_MINUTES,
     CONF_HOME_ARRIVAL_MINUTES,
     PARKING_BUFFER_MINUTES,
@@ -54,22 +55,44 @@ class KNBSBCoordinator(DataUpdateCoordinator):
             entry.data[CONF_TEAM_URL]
         )
 
-        _LOGGER.warning(
-            "KNBSB URL PARSED | org=%s team=%s pool=%s",
-            parsed["organisation_id"],
-            parsed["team_guid"],
-            parsed["pool_id"],
-        )
+
+        # Centrale teammetadata
+
+        self.team_slot = entry.data[
+            CONF_TEAM_SLOT
+        ]
+
+        self.organisation_id = parsed[
+            "organisation_id"
+        ]
+
+        self.team_guid = parsed[
+            "team_guid"
+        ]
+
+        self.pool_id = parsed[
+            "pool_id"
+        ]
+
+        self.club_name = None
+        self.team_name = None
+        self.team_display_name = None
+
+
+        # HTTP session
 
         session = async_get_clientsession(
             hass
         )
 
+
+        # API-client gebruikt bovenstaande metadata
+
         self.api = FoysApi(
             session=session,
-            organisation_id=parsed["organisation_id"],
-            team_guid=parsed["team_guid"],
-            pool_id=parsed["pool_id"],
+            organisation_id=self.organisation_id,
+            team_guid=self.team_guid,
+            pool_id=self.pool_id,
             ors_api_key=self.ors_api_key,
         )
 
@@ -101,6 +124,8 @@ class KNBSBCoordinator(DataUpdateCoordinator):
             name="KNBSB",
             update_interval=UPDATE_INTERVAL,
         )
+
+
 
 
     #
@@ -441,15 +466,6 @@ class KNBSBCoordinator(DataUpdateCoordinator):
             stored_data
         )
 
-
-        _LOGGER.debug(
-            "KNBSB travel cache opgeslagen: %s routes",
-            len(
-                stored_data
-            ),
-        )
-
-
     #
     # ---------------------------------------------------------
     # ROUTE PER WEDSTRIJD
@@ -637,6 +653,33 @@ class KNBSBCoordinator(DataUpdateCoordinator):
         #
 
         matches = await self.api.get_matches()
+
+        if matches:
+
+            self.club_name = (
+                matches[0].team_club_name
+            )
+
+            self.team_name = (
+                matches[0].team_name
+            )
+
+            if (
+                self.club_name
+                and self.team_name
+            ):
+
+                self.team_display_name = (
+                    f"{self.club_name} - "
+                    f"{self.team_name}"
+                )
+
+            else:
+
+                self.team_display_name = (
+                    self.team_name
+                    or self.club_name
+                )
 
 
         next_match = (
@@ -861,6 +904,10 @@ class KNBSBCoordinator(DataUpdateCoordinator):
 
 
         return {
+
+            "organisation_id":
+                self.organisation_id,
+
             "matches":
                 matches,
 
@@ -881,4 +928,22 @@ class KNBSBCoordinator(DataUpdateCoordinator):
 
             "departure_time":
                 departure_time,
-        }
+
+            "team_slot":
+                self.team_slot,
+
+            "team_guid":
+                self.team_guid,
+
+            "team_name":
+                self.team_name,
+
+            "pool_id":
+                self.pool_id,
+
+            "club_name":
+                self.club_name,
+
+            "team_display_name":
+                self.team_display_name,
+         }

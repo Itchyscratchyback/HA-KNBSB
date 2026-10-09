@@ -6,6 +6,8 @@ DOMAIN = "knbsb"
 CONF_TEAM_URL = "team_url"
 CONF_ORS_API_KEY = "ors_api_key"
 
+CONF_TEAM_SLOT = "team_slot"
+
 CONF_AWAY_ARRIVAL_MINUTES = (
     "away_arrival_minutes"
 )

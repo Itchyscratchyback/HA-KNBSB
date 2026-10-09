@@ -3,7 +3,6 @@ from math import atan2, cos, radians, sin, sqrt
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-
 async def async_setup_entry(
     hass,
     entry,
@@ -11,38 +10,80 @@ async def async_setup_entry(
 ):
     coordinator = entry.runtime_data
 
+    entities = [
+        KNBSBNextMatchSensor(coordinator),
+        KNBSBNextMatchDateSensor(coordinator),
+        KNBSBNextMatchTimeSensor(coordinator),
+        KNBSBNextMatchLocationSensor(coordinator),
+        KNBSBNextMatchLogoSensor(coordinator),
+        KNBSBNextMatchAddressSensor(coordinator),
+        KNBSBMatchesRemainingSensor(coordinator),
+        KNBSBScheduleSensor(coordinator),
+        KNBSBHomeAwaySensor(coordinator),
+        KNBSBDistanceSensor(
+            hass,
+            coordinator,
+        ),
+        KNBSBDriveDistanceSensor(coordinator),
+        KNBSBDriveTimeSensor(coordinator),
+        KNBSBDepartureTimeSensor(coordinator),
+        KNBSBArrivalTimeSensor(coordinator),
+        KNBSBTeamNameSensor(coordinator),
+        KNBSBTeamLogoSensor(coordinator),
+        KNBSBOpponentNameSensor(coordinator),
+        KNBSBOpponentLogoSensor(coordinator),
+    ]
     async_add_entities(
-        [
-            KNBSBNextMatchSensor(coordinator),
-            KNBSBNextMatchDateSensor(coordinator),
-            KNBSBNextMatchTimeSensor(coordinator),
-            KNBSBNextMatchLocationSensor(coordinator),
-            KNBSBNextMatchLogoSensor(coordinator),
-            KNBSBNextMatchAddressSensor(coordinator),
-            KNBSBMatchesRemainingSensor(coordinator),
-            KNBSBScheduleSensor(coordinator),
-            KNBSBHomeAwaySensor(coordinator),
-            KNBSBDistanceSensor(hass, coordinator),
-            KNBSBDriveDistanceSensor(coordinator),
-            KNBSBDriveTimeSensor(coordinator),
-            KNBSBDepartureTimeSensor(coordinator),
-            KNBSBArrivalTimeSensor(coordinator),
-            KNBSBTeamNameSensor(coordinator),
-            KNBSBTeamLogoSensor(coordinator),
-            KNBSBOpponentNameSensor(coordinator),
-            KNBSBOpponentLogoSensor(coordinator),
-        ]
-    )
+    entities
+)
 
 
-class KNBSBBaseSensor(CoordinatorEntity, SensorEntity):
+class KNBSBBaseSensor(
+    CoordinatorEntity,
+    SensorEntity,
+):
+    def __init__(
+        self,
+        coordinator,
+    ):
+        super().__init__(
+            coordinator
+        )
 
-    def __init__(self, coordinator):
-        super().__init__(coordinator)
+    def _team_unique_id(
+        self,
+        suffix: str,
+    ) -> str:
+        """Build a unique ID for this KNBSB team."""
+
+        return (
+            f"knbsb_"
+            f"{self.coordinator.team_guid}_"
+            f"{suffix}"
+        )
+    def _team_friendly_name(
+        self,
+        suffix: str,
+    ) -> str:
+        """Build a friendly name for this KNBSB team."""
+
+        team_display_name = (
+            self.coordinator.team_display_name
+            or self.coordinator.team_name
+            or self.coordinator.club_name
+            or f"KNBSB Team {self.coordinator.team_slot}"
+        )
+
+        return (
+            f"{team_display_name} - "
+            f"{suffix}"
+        )
 
     @property
     def next_match(self):
-        return self.coordinator.data.get("next_match")
+        return self.coordinator.data.get(
+            "next_match"
+        )
 
     @property
     def matches(self):
@@ -54,13 +95,16 @@ class KNBSBBaseSensor(CoordinatorEntity, SensorEntity):
 
 class KNBSBNextMatchSensor(KNBSBBaseSensor):
 
+
     @property
     def unique_id(self):
-        return "knbsb_next_match"
+        return self._team_unique_id("next_match")
 
     @property
     def name(self):
-        return "KNBSB Next Match"
+        return self._team_friendly_name(
+        "Volgende wedstrijd"
+    )
 
     @property
     def native_value(self):
@@ -89,11 +133,15 @@ class KNBSBNextMatchDateSensor(KNBSBBaseSensor):
 
     @property
     def unique_id(self):
-        return "knbsb_next_match_date"
+        return self._team_unique_id(
+            "next_match_date"
+        )
 
     @property
     def name(self):
-        return "KNBSB Next Match Date"
+        return self._team_friendly_name(
+            "Wedstrijddatum"
+        )
 
     @property
     def native_value(self):
@@ -105,13 +153,16 @@ class KNBSBNextMatchDateSensor(KNBSBBaseSensor):
 
 class KNBSBNextMatchTimeSensor(KNBSBBaseSensor):
 
+
     @property
     def unique_id(self):
-        return "knbsb_next_match_time"
+        return self._team_unique_id("next_match_time")
 
     @property
     def name(self):
-        return "KNBSB Next Match Time"
+        return self._team_friendly_name(
+        "Wedstrijdtijd"
+    )
 
     @property
     def native_value(self):
@@ -123,13 +174,16 @@ class KNBSBNextMatchTimeSensor(KNBSBBaseSensor):
 
 class KNBSBNextMatchLocationSensor(KNBSBBaseSensor):
 
+
     @property
     def unique_id(self):
-        return "knbsb_next_match_location"
+        return self._team_unique_id("next_match_location")
 
     @property
     def name(self):
-        return "KNBSB Next Match Location"
+        return self._team_friendly_name(
+        "Wedstrijdlocatie"
+    )
 
     @property
     def native_value(self):
@@ -141,13 +195,16 @@ class KNBSBNextMatchLocationSensor(KNBSBBaseSensor):
 
 class KNBSBNextMatchLogoSensor(KNBSBBaseSensor):
 
+
     @property
     def unique_id(self):
-        return "knbsb_next_match_logo"
+        return self._team_unique_id("next_match_logo")
 
     @property
     def name(self):
-        return "KNBSB Next Match Logo"
+        return self._team_friendly_name(
+        "Logo volgende tegenstander"
+    )
 
     @property
     def native_value(self):
@@ -171,13 +228,16 @@ class KNBSBNextMatchLogoSensor(KNBSBBaseSensor):
 
 class KNBSBNextMatchAddressSensor(KNBSBBaseSensor):
 
+
     @property
     def unique_id(self):
-        return "knbsb_next_match_address"
+        return self._team_unique_id("next_match_address")
 
     @property
     def name(self):
-        return "KNBSB Next Match Address"
+        return self._team_friendly_name(
+        "Wedstrijdadres"
+    )
 
     @property
     def native_value(self):
@@ -233,11 +293,15 @@ class KNBSBMatchesRemainingSensor(KNBSBBaseSensor):
 
     @property
     def unique_id(self):
-        return "knbsb_matches_remaining"
+        return self._team_unique_id(
+            "matches_remaining"
+        )
 
     @property
     def name(self):
-        return "KNBSB Matches Remaining"
+        return self._team_friendly_name(
+            "Resterende wedstrijden"
+        )
 
     @property
     def native_value(self):
@@ -246,13 +310,16 @@ class KNBSBMatchesRemainingSensor(KNBSBBaseSensor):
 
 class KNBSBHomeAwaySensor(KNBSBBaseSensor):
 
+
     @property
     def unique_id(self):
-        return "knbsb_next_match_home_away"
+        return self._team_unique_id("next_match_home_away")
 
     @property
     def name(self):
-        return "KNBSB Next Match Home Away"
+        return self._team_friendly_name(
+        "Thuis / Uit"
+    )
 
     @property
     def native_value(self):
@@ -263,6 +330,7 @@ class KNBSBHomeAwaySensor(KNBSBBaseSensor):
 
 
 class KNBSBDistanceSensor(KNBSBBaseSensor):
+
 
     def __init__(
         self,
@@ -275,11 +343,13 @@ class KNBSBDistanceSensor(KNBSBBaseSensor):
 
     @property
     def unique_id(self):
-        return "knbsb_next_match_distance"
+        return self._team_unique_id("next_match_distance")
 
     @property
     def name(self):
-        return "KNBSB Next Match Distance"
+        return self._team_friendly_name(
+        "Afstand"
+    )
 
     @property
     def native_unit_of_measurement(self):
@@ -370,13 +440,16 @@ class KNBSBDistanceSensor(KNBSBBaseSensor):
 
 class KNBSBDriveDistanceSensor(KNBSBBaseSensor):
 
+
     @property
     def unique_id(self):
-        return "knbsb_drive_distance"
+        return self._team_unique_id("drive_distance")
 
     @property
     def name(self):
-        return "KNBSB Drive Distance"
+        return self._team_friendly_name(
+        "Rijafstand"
+    )
 
     @property
     def native_unit_of_measurement(self):
@@ -390,14 +463,17 @@ class KNBSBDriveDistanceSensor(KNBSBBaseSensor):
 
 
 class KNBSBDriveTimeSensor(KNBSBBaseSensor):
+    
 
     @property
     def unique_id(self):
-        return "knbsb_drive_time"
+        return self._team_unique_id("drive_time")
 
     @property
     def name(self):
-        return "KNBSB Drive Time"
+        return self._team_friendly_name(
+        "Reistijd"
+    )
 
     @property
     def native_unit_of_measurement(self):
@@ -412,13 +488,16 @@ class KNBSBDriveTimeSensor(KNBSBBaseSensor):
 
 class KNBSBDepartureTimeSensor(KNBSBBaseSensor):
 
+
     @property
     def unique_id(self):
-        return "knbsb_departure_time"
+        return self._team_unique_id("departure_time")
 
     @property
     def name(self):
-        return "KNBSB Departure Time"
+        return self._team_friendly_name(
+            "Vertrektijd"
+        )
 
     @property
     def native_value(self):
@@ -454,13 +533,17 @@ class KNBSBDepartureTimeSensor(KNBSBBaseSensor):
 
 class KNBSBArrivalTimeSensor(KNBSBBaseSensor):
 
+
     @property
     def unique_id(self):
-        return "knbsb_arrival_time"
+        return self._team_unique_id("arrival_time")
 
     @property
     def name(self):
-        return "KNBSB Arrival Time"
+        return self._team_friendly_name(
+        "Aankomsttijd"
+    )
+
 
     @property
     def native_value(self):
@@ -496,13 +579,16 @@ class KNBSBArrivalTimeSensor(KNBSBBaseSensor):
 
 class KNBSBTeamNameSensor(KNBSBBaseSensor):
 
+
     @property
     def unique_id(self):
-        return "knbsb_team_name"
+        return self._team_unique_id("team_name")
 
     @property
     def name(self):
-        return "KNBSB Team Name"
+        return self._team_friendly_name(
+        "Teamnaam"
+    )
 
     @property
     def native_value(self):
@@ -514,13 +600,16 @@ class KNBSBTeamNameSensor(KNBSBBaseSensor):
 
 class KNBSBTeamLogoSensor(KNBSBBaseSensor):
 
+
     @property
     def unique_id(self):
-        return "knbsb_team_logo"
+        return self._team_unique_id("team_logo")
 
     @property
     def name(self):
-        return "KNBSB Team Logo"
+        return self._team_friendly_name(
+        "Teamlogo"
+    )
 
     @property
     def native_value(self):
@@ -532,13 +621,16 @@ class KNBSBTeamLogoSensor(KNBSBBaseSensor):
 
 class KNBSBOpponentNameSensor(KNBSBBaseSensor):
 
+
     @property
     def unique_id(self):
-        return "knbsb_opponent_name"
+        return self._team_unique_id("opponent_name")
 
     @property
     def name(self):
-        return "KNBSB Opponent Name"
+        return self._team_friendly_name(
+        "Tegenstander"
+    )
 
     @property
     def native_value(self):
@@ -550,13 +642,16 @@ class KNBSBOpponentNameSensor(KNBSBBaseSensor):
 
 class KNBSBOpponentLogoSensor(KNBSBBaseSensor):
 
+
     @property
     def unique_id(self):
-        return "knbsb_opponent_logo"
+        return self._team_unique_id("opponent_logo")
 
     @property
     def name(self):
-        return "KNBSB Opponent Logo"
+        return self._team_friendly_name(
+        "Logo tegenstander"
+    )
 
     @property
     def native_value(self):
@@ -567,6 +662,7 @@ class KNBSBOpponentLogoSensor(KNBSBBaseSensor):
 
 
 class KNBSBScheduleSensor(KNBSBBaseSensor):
+
 
     @staticmethod
     def clean_logo(value):
@@ -605,6 +701,8 @@ class KNBSBScheduleSensor(KNBSBBaseSensor):
         )
         extension = address.get(
             "houseNumberExtension"
+
+
         )
 
         if street:
@@ -651,11 +749,13 @@ class KNBSBScheduleSensor(KNBSBBaseSensor):
 
     @property
     def unique_id(self):
-        return "knbsb_schedule"
+        return self._team_unique_id("schedule")
 
     @property
     def name(self):
-        return "KNBSB Schedule"
+        return self._team_friendly_name(
+        "Programma"
+    )
 
     @property
     def native_value(self):
@@ -789,6 +889,16 @@ class KNBSBScheduleSensor(KNBSBBaseSensor):
             )
 
         return {
+
+            "integration":
+                "knbsb",
+
+            "data_type":
+                "schedule",
+
+            "matches":
+                schedule,
+
             "matches":
                 schedule,
 
@@ -815,4 +925,19 @@ class KNBSBScheduleSensor(KNBSBBaseSensor):
                     is not None
                     for match in schedule
                 ),
+
+            "team_slot":
+                self.coordinator.team_slot,
+
+            "team_guid":
+                self.coordinator.team_guid,
+
+            "club_name":
+                self.coordinator.club_name,
+
+            "team_name":
+                self.coordinator.team_name,
+
+            "team_display_name":
+                self.coordinator.team_display_name,
         }

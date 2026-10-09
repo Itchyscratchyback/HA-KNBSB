@@ -139,16 +139,35 @@ class FoysApi:
             # Deze waarden moeten voor ELKE wedstrijd
             # opnieuw uit het huidige item komen.
 
+            home_club_name = (
+                item[
+                    "homeOrganisation"
+                ]["name"]
+            )
+
             home_team_name = (
-                item["homeOrganisation"]["name"]
+                item.get(
+                    "homeTeamName"
+                )
+                or home_club_name
             )
 
             home_team_logo = (
                 item["homeLogoUrl"]
             )
 
+
+            away_club_name = (
+                item[
+                    "awayOrganisation"
+                ]["name"]
+            )
+
             away_team_name = (
-                item["awayOrganisation"]["name"]
+                item.get(
+                    "awayTeamName"
+                )
+                or away_club_name
             )
 
             away_team_logo = (
@@ -160,40 +179,55 @@ class FoysApi:
 
             if is_home:
 
-                team_name = (
-                    item["homeOrganisation"]["name"]
+                team_club_name = (
+                    home_club_name
                 )
 
-                opponent_name = (
-                    item["awayOrganisation"]["name"]
+                team_name = (
+                    home_team_name
                 )
 
                 team_logo = (
-                    item["homeLogoUrl"]
+                    home_team_logo
+                )
+
+                opponent_club_name = (
+                    away_club_name
+                )
+
+                opponent_name = (
+                    away_team_name
                 )
 
                 opponent_logo = (
-                    item["awayLogoUrl"]
+                    away_team_logo
                 )
 
             else:
 
-                team_name = (
-                    item["awayOrganisation"]["name"]
+                team_club_name = (
+                    away_club_name
                 )
 
-                opponent_name = (
-                    item["homeOrganisation"]["name"]
+                team_name = (
+                    away_team_name
                 )
 
                 team_logo = (
-                    item["awayLogoUrl"]
+                    away_team_logo
+                )
+
+                opponent_club_name = (
+                    home_club_name
+                )
+
+                opponent_name = (
+                    home_team_name
                 )
 
                 opponent_logo = (
-                    item["homeLogoUrl"]
+                    home_team_logo
                 )
-
 
             matches.append(
                 Match(
@@ -202,22 +236,25 @@ class FoysApi:
                     date=item["date"].split("T")[0],
                     time=item["startTime"][:5],
 
-                    opponent=opponent_name,
-
                     team_name=team_name,
                     team_logo=team_logo,
+                    team_club_name=team_club_name,
 
+                    opponent=opponent_name,
                     opponent_name=opponent_name,
                     opponent_logo=opponent_logo,
+                    opponent_club_name=opponent_club_name,
 
                     home_team_name=home_team_name,
+                    home_logo=item["homeLogoUrl"],
+                    home_club_name=home_club_name,
                     home_team_logo=home_team_logo,
 
+                    away_club_name=away_club_name,
                     away_team_name=away_team_name,
                     away_team_logo=away_team_logo,
-
-                    home_logo=item["homeLogoUrl"],
                     away_logo=item["awayLogoUrl"],
+
 
                     location=item["accommodationName"],
 
@@ -233,6 +270,8 @@ class FoysApi:
 
                     latitude=item["address"]["latitude"],
                     longitude=item["address"]["longitude"],
+
+
                 )
             )
 
