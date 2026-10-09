@@ -1,7 +1,7 @@
 {
   "domain": "knbsb",
   "name": "KNBSB",
-  "version": "0.1.0-beta.1",
+  "version": "0.5.0",
   "documentation": "https://github.com/Itchyscratchyback/HA-KNBSB",
   "issue_tracker": "https://github.com/Itchyscratchyback/HA-KNBSB/issues",
   "requirements": [],
