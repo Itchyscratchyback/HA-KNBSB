@@ -235,9 +235,15 @@ class KNBSBNextMatchAddressSensor(KNBSBBaseSensor):
 
     @property
     def name(self):
-        return self._team_friendly_name(
-        "Wedstrijdadres"
-    )
+        # Use a short, consistent name for Android Auto navigation buttons.
+        # Format: "NxtMatch-<team_id>" where team_id is the team's display/name/club or slot.
+        team_id = (
+            self.coordinator.team_name
+#            or self.coordinator.club_name
+#            or f"Team{self.coordinator.team_slot}"
+        )
+
+        return f"NxtMatch-{team_id}"
 
     @property
     def native_value(self):
