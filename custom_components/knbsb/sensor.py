@@ -243,7 +243,13 @@ class KNBSBNextMatchAddressSensor(KNBSBBaseSensor):
 #            or f"Team{self.coordinator.team_slot}"
         )
 
-        return f"NxtMatch-{team_id}"
+        return f"{team_id}-NxtMatch"
+
+    @property
+    def icon(self):
+        """Return an icon for the address/navigation sensor."""
+        # Use a map marker icon for navigation/address
+        return "mdi:baseball-diamond-outline"
 
     @property
     def native_value(self):
