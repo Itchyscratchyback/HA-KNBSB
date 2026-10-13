@@ -64,6 +64,6 @@ In AndroidAuto modus open Homeassistant -> Navigation -> Kies de Match
 
 Zie hieronder een voorbeeld van een match:
 
-<img width="30%" height="30%" alt="HA-AA-Navigatie-knop" src="https://github.com/user-attachments/assets/e1fc0dae-9ab9-4491-be40-2f5f7244ae53" />
+<img width="20%" height="20%" alt="HA-AA-Navigatie-knop" src="https://github.com/user-attachments/assets/e1fc0dae-9ab9-4491-be40-2f5f7244ae53" />
 
 ---
