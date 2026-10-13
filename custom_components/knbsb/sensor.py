@@ -248,10 +248,15 @@ class KNBSBNextMatchAddressSensor(KNBSBBaseSensor):
 
         street = addr.get("address1", "")
         house_number = addr.get("houseNumber", "")
-        extension = addr.get(
-            "houseNumberExtension",
-            "",
-        )
+        # houseNumberExtension may exist but be None; ensure we never return None
+        extension = addr.get("houseNumberExtension")
+        if extension is None:
+            extension = ""
+        else:
+            # normalize to string and prepend a space when non-empty so
+            # house number and extension are separated (e.g. "123 A").
+            extension = str(extension).strip()
+            extension = f" {extension}" if extension else ""
         city = addr.get("city", "")
 
         street_line = " ".join(
