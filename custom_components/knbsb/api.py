@@ -292,8 +292,6 @@ class FoysApi:
 
         while True:
             params = {
-                "organisationId": self.organisation_id,
-                "teamGuid": self.team_guid,
                 "poolId": self.pool_id,
                 "skipCount": skip,
                 "maxResultCount": page_size,
