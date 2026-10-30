@@ -169,6 +169,16 @@ class HistoryStore:
     def get_team(self, team_key: str) -> dict[str, Any] | None:
         return self._data["teams"].get(team_key)
 
+    def find_team_by_guid(self, team_guid: str) -> dict[str, Any] | None:
+        return next(
+            (
+                team
+                for team in self._data["teams"].values()
+                if team_guid in team["known_team_guids"]
+            ),
+            None,
+        )
+
     def get_last_sync(self, team_guid: str) -> str | None:
         return self._data["sync"].get(team_guid)
 

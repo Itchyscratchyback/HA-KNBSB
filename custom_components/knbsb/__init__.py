@@ -129,6 +129,32 @@ async def async_setup_entry(
         "knbsb_history_initial_sync",
     )
 
+    def _apply_stored_names() -> None:
+        """Fill team names from history when no upcoming matches exist."""
+
+        if coordinator.team_name:
+            return
+
+        team = manager.store.find_team_by_guid(coordinator.team_guid)
+
+        if not team:
+            return
+
+        coordinator.club_name = team["club_name"]
+        coordinator.team_name = team["team_code"]
+        coordinator.team_display_name = (
+            f"{team['club_name']} - {team['team_code']}"
+        )
+
+        hass.config_entries.async_update_entry(
+            entry,
+            title=coordinator.team_display_name,
+        )
+
+    if not coordinator.team_name:
+        await _sync_history(force=True)
+        _apply_stored_names()
+
     await hass.config_entries.async_forward_entry_setups(
         entry,
         PLATFORMS,
