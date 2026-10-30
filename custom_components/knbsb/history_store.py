@@ -112,7 +112,12 @@ class HistoryStore:
             {"pool_id": pool_id, "matches": {}},
         )
 
-        pool["standings"] = [
+        old_rows = {
+            row["team_guid"]: row
+            for row in pool.get("standings", [])
+        }
+
+        new_rows = [
             {
                 "position": row.get("position"),
                 "team_guid": row.get("teamGuid"),
@@ -134,6 +139,29 @@ class HistoryStore:
                 standings, key=lambda r: r.get("position") or 999
             )
         ]
+
+        for row in new_rows:
+            old = old_rows.get(row["team_guid"])
+            trend = dict(old.get("trend", {})) if old else {}
+
+            if old:
+                diff_old, diff_new = old.get("score_diff"), row["score_diff"]
+                if None not in (diff_old, diff_new) and diff_new != diff_old:
+                    trend["score_diff"] = (
+                        "up" if diff_new > diff_old else "down"
+                    )
+
+                # A rise in wins clears the loss trend and vice versa.
+                if (row["won"] or 0) > (old.get("won") or 0):
+                    trend["won"] = "up"
+                    trend.pop("lost", None)
+                if (row["lost"] or 0) > (old.get("lost") or 0):
+                    trend["lost"] = "up"
+                    trend.pop("won", None)
+
+            row["trend"] = trend
+
+        pool["standings"] = new_rows
 
     def get_pool(self, pool_id: int) -> dict[str, Any] | None:
         return self._data["pools"].get(str(pool_id))

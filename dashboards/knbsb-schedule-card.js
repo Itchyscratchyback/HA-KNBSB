@@ -2440,10 +2440,17 @@
                         </td>
                         ${cols
                             .map(
-                                ([key, label, tip]) =>
-                                    `<td title="${this.escapeAttribute(
+                                ([key, label, tip]) => {
+                                    const t = (row.trend || {})[key];
+                                    const cls =
+                                        key === "lost"
+                                            ? (t === "up" ? "bad" : "")
+                                            : (t === "up" ? "good"
+                                                : t === "down" ? "bad" : "");
+                                    return `<td class="${cls}" title="${this.escapeAttribute(
                                         `${tip} – ${name}`
-                                    )}">${row[key] ?? ""}</td>`
+                                    )}">${row[key] ?? ""}</td>`;
+                                }
                             )
                             .join("")}
                     </tr>`;
@@ -2468,6 +2475,8 @@
                 .st tr.own td { font-weight: 700;
                     background: color-mix(in srgb,
                         var(--primary-color) 18%, transparent); }
+                .st td.good { color: var(--success-color, #2e9e4f); font-weight: 700; }
+                .st td.bad { color: var(--error-color, #d93025); font-weight: 700; }
                 .st td.pos { width: 32px; }
                 .st td.tm { text-align: left; display: flex;
                     align-items: center; gap: 10px; min-width: 160px; }
