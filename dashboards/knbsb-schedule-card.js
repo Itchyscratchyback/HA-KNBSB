@@ -16,6 +16,8 @@
             this.config.view !== "team"
             &&
             this.config.view !== "results"
+            &&
+            this.config.view !== "standings"
         ) {
             throw new Error(
                 "KNBSB Schedule Card: onbekende view"
@@ -28,6 +30,8 @@
                 this.config.view === "team"
                 ||
                 this.config.view === "results"
+                ||
+                this.config.view === "standings"
             )
             &&
             !this.config.team
@@ -104,7 +108,10 @@
 
         this._hass = hass;
 
-        if (this.config.view === "results") {
+        if (
+            this.config.view === "results"
+            || this.config.view === "standings"
+        ) {
 
             this.loadResults();
 
@@ -1835,6 +1842,8 @@
                 card.view === "team"
                 ||
                 card.view === "results"
+                ||
+                card.view === "standings"
             )
             &&
             card.managed_by
@@ -1891,6 +1900,18 @@
 
                     viewConfig:
                         this.buildResultsViewConfig(
+                            schedule
+                        ),
+                },
+                {
+                    kind: "standings",
+                    slot: schedule.teamSlot,
+                    guid: schedule.teamGuid,
+                    clubName: schedule.clubName,
+                    teamName: schedule.teamName,
+                    displayName: schedule.teamDisplayName,
+                    viewConfig:
+                        this.buildStandingsViewConfig(
                             schedule
                         ),
                 },
@@ -2143,7 +2164,11 @@
             this._resultsLoading = false;
         }
 
-        this.renderResults();
+        if (this.config.view === "standings") {
+            this.renderStandings();
+        } else {
+            this.renderResults();
+        }
     }
 
     resultsTeamLabel(match, side) {
