@@ -316,6 +316,22 @@ class FoysApi:
                 return items
 
 
+    async def get_standings(self, competition_id):
+        """Return the raw standings list for the pool."""
+
+        url = (
+            "https://api.foys.io/competition/public-api/v1/"
+            f"competitions/{competition_id}/pools/{self.pool_id}/teams"
+        )
+
+        async with self.session.get(
+            url,
+            headers=DEFAULT_HEADERS,
+        ) as response:
+            response.raise_for_status()
+            return await response.json()
+
+
 def parse_team_url(
     url: str,
 ):

@@ -1,4 +1,4 @@
-class KNBSBScheduleCard extends HTMLElement {
+﻿class KNBSBScheduleCard extends HTMLElement {
 
     setConfig(config) {
 
@@ -1803,6 +1803,28 @@ class KNBSBScheduleCard extends HTMLElement {
         };
     }
 
+    buildStandingsViewConfig(schedule) {
+
+        const teamTitle =
+            schedule.teamName
+            || schedule.teamDisplayName
+            || `KNBSB Team ${schedule.teamSlot}`;
+
+        return {
+            title: `${teamTitle}-stand`,
+            path: `knbsb-standings-${schedule.teamSlot}`,
+            type: "masonry",
+            cards: [
+                {
+                    type: "custom:knbsb-schedule-card",
+                    view: "standings",
+                    team: schedule.teamGuid,
+                    managed_by: "knbsb",
+                },
+            ],
+        };
+    }
+
     isManagedCard(card) {
 
         return (
@@ -2338,6 +2360,115 @@ class KNBSBScheduleCard extends HTMLElement {
                 this.renderResults();
             };
         });
+    }
+
+    renderStandings() {
+
+        const pool = this._resultsPool;
+        const rows = (pool && pool.standings) || [];
+
+        if (rows.length === 0) {
+
+            this.innerHTML = `
+                <ha-card class="message-card">
+                    Nog geen stand beschikbaar
+                </ha-card>
+            `;
+
+            return;
+        }
+
+        const cols = [
+            ["games_played", "G", "Gespeelde wedstrijden"],
+            ["won", "W", "Gewonnen"],
+            ["draw", "D", "Gelijk gespeeld"],
+            ["lost", "L", "Verloren"],
+            ["points", "P", "Punten"],
+            ["score_diff", "V", "Puntensaldo (voor min tegen)"],
+            ["score_for", "DV", "Punten voor"],
+            ["score_against", "DT", "Punten tegen"],
+        ];
+
+        const head = cols
+            .map(
+                ([, label, tip]) =>
+                    `<th title="${this.escapeAttribute(tip)}">${label}</th>`
+            )
+            .join("");
+
+        const body = rows
+            .map((row) => {
+
+                const url = this.normalizeUrl(row.logo);
+                const name =
+                    `${row.club_name || ""} ${row.team_code || ""}`.trim();
+                const own = row.team_guid === this.config.team;
+
+                return `
+                    <tr class="${own ? "own" : ""}">
+                        <td class="pos" title="Positie">${row.position ?? ""}</td>
+                        <td class="tm">
+                            ${url
+                                ? `<img src="${this.escapeAttribute(url)}" alt="" loading="lazy">`
+                                : ""}
+                            <span>${this.escapeHtml(name)}</span>
+                        </td>
+                        ${cols
+                            .map(
+                                ([key, label, tip]) =>
+                                    `<td title="${this.escapeAttribute(
+                                        `${tip} – ${name}`
+                                    )}">${row[key] ?? ""}</td>`
+                            )
+                            .join("")}
+                    </tr>`;
+            })
+            .join("");
+
+        this.innerHTML = `
+            <style>
+                .st-header { margin-bottom: 12px; font-size: 20px;
+                    font-weight: 700; text-align: center; }
+                ha-card.st-card { padding: 8px 12px; border-radius: 18px;
+                    overflow-x: auto; }
+                table.st { width: 100%; border-collapse: collapse; }
+                .st th { text-align: center; padding: 8px 6px;
+                    font-size: 13px; cursor: help; }
+                .st th:first-child, .st th:nth-child(2) { text-align: left; }
+                .st td { padding: 8px 6px; text-align: center;
+                    border-top: 1px solid var(--divider-color); }
+                .st tr:nth-child(even) td {
+                    background: color-mix(in srgb,
+                        var(--primary-text-color) 5%, transparent); }
+                .st tr.own td { font-weight: 700;
+                    background: color-mix(in srgb,
+                        var(--primary-color) 18%, transparent); }
+                .st td.pos { width: 32px; }
+                .st td.tm { text-align: left; display: flex;
+                    align-items: center; gap: 10px; min-width: 160px; }
+                .st td.tm img { width: 32px; height: 32px;
+                    object-fit: contain; }
+                .message-card { padding: 16px; text-align: center; }
+            </style>
+            <div class="container">
+                <div class="st-header">
+                    🏆 ${this.escapeHtml(
+                        pool.competition_name || "Stand"
+                    )}${rows[0].pool_name
+                        ? " · " + this.escapeHtml(rows[0].pool_name)
+                        : ""}
+                </div>
+                <ha-card class="st-card">
+                    <table class="st">
+                        <thead><tr>
+                            <th title="Positie in de poule">#</th>
+                            <th>Team</th>${head}
+                        </tr></thead>
+                        <tbody>${body}</tbody>
+                    </table>
+                </ha-card>
+            </div>
+        `;
     }
 
     renderResultCard(match, ownGuid) {

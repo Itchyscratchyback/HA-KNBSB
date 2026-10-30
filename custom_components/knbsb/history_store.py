@@ -102,6 +102,39 @@ class HistoryStore:
 
         pool["last_sync"] = last_sync
 
+    def update_standings(
+        self,
+        pool_id: int,
+        standings: list[dict[str, Any]],
+    ) -> None:
+        pool = self._data["pools"].setdefault(
+            str(pool_id),
+            {"pool_id": pool_id, "matches": {}},
+        )
+
+        pool["standings"] = [
+            {
+                "position": row.get("position"),
+                "team_guid": row.get("teamGuid"),
+                "club_name": row.get("clubName"),
+                "team_code": row.get("teamName"),
+                "logo": row.get("clubLogoUrl"),
+                "pool_name": row.get("poolName"),
+                "games_played": row.get("gamesPlayed"),
+                "won": row.get("wonCount"),
+                "draw": row.get("drawCount"),
+                "lost": row.get("lostCount"),
+                "points": row.get("points"),
+                "score_diff": row.get("scoreDifference"),
+                "score_for": row.get("scorePositive"),
+                "score_against": row.get("scoreNegative"),
+                "loss_of_rights": row.get("isLossOfRights"),
+            }
+            for row in sorted(
+                standings, key=lambda r: r.get("position") or 999
+            )
+        ]
+
     def get_pool(self, pool_id: int) -> dict[str, Any] | None:
         return self._data["pools"].get(str(pool_id))
 

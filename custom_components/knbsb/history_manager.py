@@ -97,6 +97,25 @@ class HistoryManager:
                 break
 
         self.store.update_pool(api.pool_id, matches, now)
+
+        competition_id = next(
+            (m["competition_id"] for m in matches if m["competition_id"]),
+            None,
+        )
+
+        if competition_id:
+            try:
+                self.store.update_standings(
+                    api.pool_id,
+                    await api.get_standings(competition_id),
+                )
+            except Exception as err:  # noqa: BLE001
+                _LOGGER.warning(
+                    "KNBSB standings failed for pool %s: %s",
+                    api.pool_id,
+                    err,
+                )
+
         self.store.set_last_sync(api.team_guid, now)
         await self.store.async_save()
 
