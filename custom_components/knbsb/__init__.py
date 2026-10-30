@@ -1,5 +1,11 @@
+import logging
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.event import async_track_time_interval
+
+from .history_manager import SYNC_TICK, HistoryManager
+from .websocket_api import async_register_websocket
 
 from .const import (
     CONF_TEAM_SLOT,
@@ -8,6 +14,8 @@ from .const import (
 
 from .coordinator import KNBSBCoordinator
 
+
+_LOGGER = logging.getLogger(__name__)
 
 PLATFORMS = [
     "sensor",
@@ -85,6 +93,41 @@ async def async_setup_entry(
         )
 
     entry.runtime_data = coordinator
+
+    manager = hass.data.setdefault(DOMAIN, {}).get("history")
+
+    if manager is None:
+        manager = HistoryManager(hass)
+        await manager.async_setup()
+        hass.data[DOMAIN]["history"] = manager
+        async_register_websocket(hass)
+
+    async def _sync_history(force: bool = False) -> None:
+        try:
+            await manager.async_sync_team(
+                coordinator.api,
+                force=force,
+            )
+        except Exception as err:  # noqa: BLE001
+            _LOGGER.warning(
+                "KNBSB history sync failed for pool %s: %s",
+                coordinator.pool_id,
+                err,
+            )
+
+    async def _tick(_now) -> None:
+        await _sync_history()
+
+    entry.async_on_unload(
+        async_track_time_interval(hass, _tick, SYNC_TICK)
+    )
+
+    # Always sync once after (re)start.
+    entry.async_create_background_task(
+        hass,
+        _sync_history(force=True),
+        "knbsb_history_initial_sync",
+    )
 
     await hass.config_entries.async_forward_entry_setups(
         entry,

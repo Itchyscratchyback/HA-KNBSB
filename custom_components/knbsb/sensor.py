@@ -949,6 +949,9 @@ class KNBSBScheduleSensor(KNBSBBaseSensor):
             "team_guid":
                 self.coordinator.team_guid,
 
+            "pool_id":
+                self.coordinator.pool_id,
+
             "club_name":
                 self.coordinator.club_name,
 

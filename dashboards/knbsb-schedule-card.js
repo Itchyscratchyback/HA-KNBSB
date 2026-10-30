@@ -14,6 +14,8 @@ class KNBSBScheduleCard extends HTMLElement {
             this.config.view !== "coach"
             &&
             this.config.view !== "team"
+            &&
+            this.config.view !== "results"
         ) {
             throw new Error(
                 "KNBSB Schedule Card: onbekende view"
@@ -22,7 +24,11 @@ class KNBSBScheduleCard extends HTMLElement {
 
 
         if (
-            this.config.view === "team"
+            (
+                this.config.view === "team"
+                ||
+                this.config.view === "results"
+            )
             &&
             !this.config.team
             &&
@@ -97,6 +103,13 @@ class KNBSBScheduleCard extends HTMLElement {
     set hass(hass) {
 
         this._hass = hass;
+
+        if (this.config.view === "results") {
+
+            this.loadResults();
+
+            return;
+        }
 
         let matches = [];
 
@@ -1269,10 +1282,10 @@ class KNBSBScheduleCard extends HTMLElement {
                             mergedConfig.views = [];
                         }
 
-                        const removalGuids =
+                        const removalKeys =
                             syncPlan.removals.map(
                                 (item) =>
-                                    item.guid
+                                    `${item.kind}:${item.guid}`
                             );
     
                         mergedConfig.views =
@@ -1290,14 +1303,7 @@ class KNBSBScheduleCard extends HTMLElement {
                                     const managedCard =
                                         view.cards.find(
                                             (card) =>
-                                                card.type
-                                                === "custom:knbsb-schedule-card"
-                                                &&
-                                                card.view
-                                                === "team"
-                                                &&
-                                                card.managed_by
-                                                === "knbsb"
+                                                this.isManagedCard(card)
                                         );
 
                                     if (!managedCard) {
@@ -1305,8 +1311,8 @@ class KNBSBScheduleCard extends HTMLElement {
                                         return true;
                                     }
 
-                                    return !removalGuids.includes(
-                                        managedCard.team
+                                    return !removalKeys.includes(
+                                        `${managedCard.view}:${managedCard.team}`
                                     );
                                 }
                             );                    
@@ -1762,33 +1768,111 @@ class KNBSBScheduleCard extends HTMLElement {
         };
     }
 
+    buildResultsViewConfig(schedule) {
+
+        const teamTitle =
+            schedule.teamName
+            || schedule.teamDisplayName
+            || `KNBSB Team ${schedule.teamSlot}`;
+
+        return {
+            title:
+                `${teamTitle}-uitslagen`,
+
+            path:
+                `knbsb-results-${schedule.teamSlot}`,
+
+            type:
+                "masonry",
+
+            cards: [
+                {
+                    type:
+                        "custom:knbsb-schedule-card",
+
+                    view:
+                        "results",
+
+                    team:
+                        schedule.teamGuid,
+
+                    managed_by:
+                        "knbsb",
+                },
+            ],
+        };
+    }
+
+    isManagedCard(card) {
+
+        return (
+            card.type
+            === "custom:knbsb-schedule-card"
+            &&
+            (
+                card.view === "team"
+                ||
+                card.view === "results"
+            )
+            &&
+            card.managed_by
+            === "knbsb"
+        );
+    }
+
     buildTeamViewsPreview(
         schedules
     ) {
 
-        return schedules.map(
-            (schedule) => ({
+        return schedules.flatMap(
+            (schedule) => [
+                {
+                    kind: "team",
 
-                slot:
-                    schedule.teamSlot,
+                    slot:
+                        schedule.teamSlot,
 
-                guid:
-                    schedule.teamGuid,
+                    guid:
+                        schedule.teamGuid,
 
-                clubName:
-                    schedule.clubName,
+                    clubName:
+                        schedule.clubName,
 
-                teamName:
-                    schedule.teamName,
+                    teamName:
+                        schedule.teamName,
 
-                displayName:
-                    schedule.teamDisplayName,
+                    displayName:
+                        schedule.teamDisplayName,
 
-                viewConfig:
-                    this.buildTeamViewConfig(
-                        schedule
-                    ),
-            })
+                    viewConfig:
+                        this.buildTeamViewConfig(
+                            schedule
+                        ),
+                },
+                {
+                    kind: "results",
+
+                    slot:
+                        schedule.teamSlot,
+
+                    guid:
+                        schedule.teamGuid,
+
+                    clubName:
+                        schedule.clubName,
+
+                    teamName:
+                        schedule.teamName,
+
+                    displayName:
+                        schedule.teamDisplayName,
+
+                    viewConfig:
+                        this.buildResultsViewConfig(
+                            schedule
+                        ),
+                },
+            ]
         );
     }
 
@@ -1822,22 +1906,15 @@ class KNBSBScheduleCard extends HTMLElement {
 
                     return view.cards.some(
                         (card) =>
-                            card.type
-                            === "custom:knbsb-schedule-card"
-                            &&
-                            card.view
-                            === "team"
-                            &&
-                            card.managed_by
-                            === "knbsb"
+                            this.isManagedCard(card)
                     );
                 }
             );
 
-        const activeGuids =
+        const activeKeys =
             preview.map(
                 (item) =>
-                    item.guid
+                    `${item.kind}:${item.guid}`
             );
 
 
@@ -1857,14 +1934,10 @@ class KNBSBScheduleCard extends HTMLElement {
 
                             return view.cards.some(
                                 (card) =>
-                                    card.type
-                                    === "custom:knbsb-schedule-card"
+                                    this.isManagedCard(card)
                                     &&
                                     card.view
-                                    === "team"
-                                    &&
-                                    card.managed_by
-                                    === "knbsb"
+                                    === item.kind
                                     &&
                                     card.team
                                     === item.guid
@@ -1911,14 +1984,7 @@ class KNBSBScheduleCard extends HTMLElement {
                 const managedCard =
                     view.cards.find(
                         (card) =>
-                            card.type
-                            === "custom:knbsb-schedule-card"
-                            &&
-                            card.view
-                            === "team"
-                            &&
-                            card.managed_by
-                            === "knbsb"
+                            this.isManagedCard(card)
                     );
 
                 if (!managedCard) {
@@ -1929,14 +1995,17 @@ class KNBSBScheduleCard extends HTMLElement {
                     managedCard.team;
 
                 if (
-                    !activeGuids.includes(
-                        guid
+                    !activeKeys.includes(
+                        `${managedCard.view}:${guid}`
                     )
                 ) {
 
                     removals.push({
                         guid:
                             guid,
+
+                        kind:
+                            managedCard.view,
 
                         title:
                             view.title || "",
@@ -1982,6 +2051,375 @@ class KNBSBScheduleCard extends HTMLElement {
             managedViews,
             removals,
         };
+    }
+
+    async loadResults() {
+
+        if (this._resultsLoading) {
+            return;
+        }
+
+        const fresh =
+            this._resultsLoadedAt
+            && Date.now() - this._resultsLoadedAt < 300000;
+
+        if (fresh) {
+            return;
+        }
+
+        const schedule =
+            this.getScheduleEntities(this._hass)
+                .find(
+                    (item) =>
+                        item.teamGuid === this.config.team
+                );
+
+        if (!schedule) {
+
+            this.innerHTML = `
+                <ha-card class="message-card">
+                    KNBSB team niet gevonden
+                </ha-card>
+            `;
+
+            return;
+        }
+
+        const poolId =
+            schedule.state.attributes.pool_id;
+
+        this._resultsLoading = true;
+
+        try {
+
+            const data =
+                await this._hass.callWS({
+                    type: "knbsb/history",
+                    pool_ids: [Number(poolId)],
+                });
+
+            this._resultsPool =
+                data.pools[String(poolId)] || null;
+
+            this._resultsTeamGuid =
+                schedule.teamGuid;
+
+            this._resultsLoadedAt =
+                this._resultsPool
+                    ? Date.now()
+                    : Date.now() - 270000;
+
+            this._resultsError = false;
+        } catch (error) {
+
+            this._resultsPool = null;
+
+            this._resultsError = true;
+
+        } finally {
+
+            this._resultsLoading = false;
+        }
+
+        this.renderResults();
+    }
+
+    resultsTeamLabel(match, side) {
+
+        const club = match[`${side}_club_name`] || "";
+        const code = match[`${side}_team_code`] || "";
+
+        return `${club} ${code}`.trim() || "Onbekend";
+    }
+
+    translateStatus(status) {
+
+        const labels = {
+            Final: "Gespeeld",
+            Cancelled: "Afgelast",
+            Planned: "Gepland",
+            Postponed: "Uitgesteld",
+        };
+
+        return labels[status] || status || "";
+    }
+
+    renderResults() {
+
+        const pool = this._resultsPool;
+
+        if (!pool) {
+
+            this.innerHTML = `
+                <ha-card class="message-card">
+                    ${this._resultsError
+                    ? "Uitslagen konden niet worden geladen"
+                    : "Nog geen uitslagen beschikbaar"}
+                </ha-card>
+            `;
+
+            return;
+        }
+
+        if (!this._resultsFilter) {
+            this._resultsFilter = new Set();
+        }
+
+        const own = this._resultsTeamGuid;
+
+        const matches = Object.values(pool.matches || {});
+
+        const teams = new Map();
+
+        matches.forEach((match) => {
+
+            ["home", "away"].forEach((side) => {
+
+                teams.set(
+                    match[`${side}_team_guid`],
+                    this.resultsTeamLabel(match, side)
+                );
+            });
+        });
+
+        const filter = this._resultsFilter;
+
+        const visible = matches
+            .filter(
+                (match) =>
+                    filter.size === 0
+                    || filter.has(match.home_team_guid)
+                    || filter.has(match.away_team_guid)
+            )
+            .sort(
+                (a, b) =>
+                    `${b.date}T${b.time || "00:00"}`
+                        .localeCompare(
+                            `${a.date}T${a.time || "00:00"}`
+                        )
+            );
+
+        const chips = [
+            `<button class="res-chip ${filter.size === 0 ? "active" : ""}"
+                data-guid="">Alle teams</button>`,
+            ...[...teams.entries()]
+                .sort((a, b) => a[1].localeCompare(b[1]))
+                .map(
+                    ([guid, label]) => `
+                    <button
+                        class="res-chip ${filter.has(guid) ? "active" : ""}"
+                        data-guid="${this.escapeAttribute(guid)}">
+                        ${this.escapeHtml(label)}
+                    </button>`
+                ),
+        ].join("");
+
+        const cards = visible
+            .map((match) => this.renderResultCard(match, own))
+            .join("");
+
+        this.innerHTML = `
+            <style>
+                .res-header {
+                    margin-bottom: 12px;
+                    font-size: 20px;
+                    font-weight: 700;
+                    text-align: center;
+                }
+                .res-chips {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 8px;
+                    margin-bottom: 16px;
+                }
+                .res-chip {
+                    padding: 6px 12px;
+                    border-radius: 16px;
+                    border: 1px solid var(--divider-color);
+                    background: transparent;
+                    color: var(--primary-text-color);
+                    cursor: pointer;
+                    font: inherit;
+                    font-size: 13px;
+                }
+                .res-chip.active {
+                    background: var(--primary-color);
+                    border-color: var(--primary-color);
+                    color: var(--text-primary-color);
+                }
+                .res-grid {
+                    display: grid;
+                    grid-template-columns:
+                        repeat(auto-fill, minmax(300px, 1fr));
+                    gap: 12px;
+                }
+                ha-card.res-card {
+                    padding: 14px 16px;
+                    border-radius: 18px;
+                }
+                ha-card.res-card.own {
+                    border: 2px solid var(--primary-color);
+                }
+                .res-meta {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-bottom: 10px;
+                    font-size: 12px;
+                    opacity: 0.75;
+                }
+                .res-status {
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+                .res-match {
+                    display: grid;
+                    grid-template-columns:
+                        minmax(0, 1fr) auto minmax(0, 1fr);
+                    align-items: center;
+                    gap: 10px;
+                }
+                .res-team {
+                    text-align: center;
+                    min-width: 0;
+                    font-size: 13px;
+                    font-weight: 600;
+                }
+                .res-team.winner { color: var(--primary-color); }
+                .res-team img {
+                    display: block;
+                    width: 56px;
+                    height: 56px;
+                    margin: 0 auto 6px;
+                    object-fit: contain;
+                }
+                .res-score {
+                    font-size: 26px;
+                    font-weight: 800;
+                    white-space: nowrap;
+                }
+                .res-role {
+                    font-size: 10px;
+                    letter-spacing: 0.8px;
+                    text-transform: uppercase;
+                    opacity: 0.6;
+                }
+                .message-card { padding: 16px; text-align: center; }
+            </style>
+
+            <div class="container">
+                <div class="res-header">
+                    📋 ${this.escapeHtml(pool.competition_name || "Uitslagen")}
+                </div>
+                <div class="res-chips">${chips}</div>
+                <div class="res-grid">
+                    ${cards || `
+                        <ha-card class="message-card">
+                            Geen uitslagen gevonden
+                        </ha-card>`}
+                </div>
+            </div>
+        `;
+
+        this.querySelectorAll(".res-chip").forEach((chip) => {
+
+            chip.onclick = () => {
+
+                const guid = chip.dataset.guid;
+
+                if (!guid) {
+                    this._resultsFilter.clear();
+                } else if (this._resultsFilter.has(guid)) {
+                    this._resultsFilter.delete(guid);
+                } else {
+                    this._resultsFilter.add(guid);
+                }
+
+                this.renderResults();
+            };
+        });
+    }
+
+    renderResultCard(match, ownGuid) {
+
+        const hasScore =
+            match.home_score !== null
+            && match.home_score !== undefined
+            && match.away_score !== null
+            && match.away_score !== undefined;
+
+        const homeWins =
+            hasScore && match.home_score > match.away_score;
+
+        const awayWins =
+            hasScore && match.away_score > match.home_score;
+
+        const parsed = new Date(`${match.date}T00:00:00`);
+
+        const dateLabel = isNaN(parsed)
+            ? this.escapeHtml(match.date || "")
+            : this.escapeHtml(
+                parsed.toLocaleDateString(
+                    "nl-NL",
+                    {
+                        weekday: "long",
+                        day: "numeric",
+                        month: "long",
+                    }
+                )
+            );
+
+        const side = (name, role, logo, wins) => {
+
+            const url = this.normalizeUrl(logo);
+
+            return `
+                <div class="res-team ${wins ? "winner" : ""}">
+                    <div class="res-role">${role}</div>
+                    ${url
+                    ? `<img src="${this.escapeAttribute(url)}"
+                            alt="" loading="lazy">`
+                    : ""}
+                    ${this.escapeHtml(name)}
+                </div>
+            `;
+        };
+
+        const isOwn =
+            match.home_team_guid === ownGuid
+            || match.away_team_guid === ownGuid;
+
+        return `
+            <ha-card class="res-card ${isOwn ? "own" : ""}">
+                <div class="res-meta">
+                    <span>${dateLabel} ${this.escapeHtml(match.time || "")}</span>
+                    <span class="res-status">
+                        ${this.escapeHtml(
+                            this.translateStatus(match.status)
+                        )}
+                    </span>
+                </div>
+                <div class="res-match">
+                    ${side(
+                        this.resultsTeamLabel(match, "home"),
+                        "Thuis",
+                        match.home_logo,
+                        homeWins
+                    )}
+                    <div class="res-score">
+                        ${hasScore
+                            ? `${match.home_score} - ${match.away_score}`
+                            : "vs"}
+                    </div>
+                    ${side(
+                        this.resultsTeamLabel(match, "away"),
+                        "Uit",
+                        match.away_logo,
+                        awayWins
+                    )}
+                </div>
+            </ha-card>
+        `;
     }
 
     renderTeamColumn(schedule) {
