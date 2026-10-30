@@ -278,6 +278,44 @@ class FoysApi:
 
         return matches
 
+    async def get_pool_matches(self):
+        """Return raw FOYS items for all matches (any status) of the pool."""
+
+        url = (
+            "https://api.foys.io/"
+            "competition/public-api/v1/matches"
+        )
+
+        page_size = 100
+        skip = 0
+        items = []
+
+        while True:
+            params = {
+                "organisationId": self.organisation_id,
+                "teamGuid": self.team_guid,
+                "poolId": self.pool_id,
+                "skipCount": skip,
+                "maxResultCount": page_size,
+                "sorting": "date asc, startTime asc",
+            }
+
+            async with self.session.get(
+                url,
+                params=params,
+                headers=DEFAULT_HEADERS,
+            ) as response:
+                response.raise_for_status()
+                data = await response.json()
+
+            page = data.get("items", [])
+            items.extend(page)
+            skip += page_size
+
+            if not page or skip >= data.get("totalCount", 0):
+                return items
+
+
 def parse_team_url(
     url: str,
 ):

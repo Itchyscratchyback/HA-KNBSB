@@ -1,263 +1,118 @@
 from __future__ import annotations
 
-import json
 import logging
-
-from pathlib import Path
+from typing import Any
 
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.storage import Store
 
-from .history_models import TeamHistory
-
+from .history_models import build_team_key
 
 _LOGGER = logging.getLogger(__name__)
 
-#CODE STARTS HERE
+STORAGE_VERSION = 1
+STORAGE_KEY = "knbsb.history"
+
 
 class HistoryStore:
+    """Central history file (.storage/knbsb.history).
 
-    def __init__(
+    Layout:
+        teams: team_key -> club/team code/GUIDs/pool ids
+        pools: pool_id  -> competition name + matches keyed by match_id
+        sync:  team_guid -> last sync (ISO, UTC)
+    """
+
+    def __init__(self, hass: HomeAssistant) -> None:
+        self._store: Store = Store(hass, STORAGE_VERSION, STORAGE_KEY)
+        self._data: dict[str, Any] = {"teams": {}, "pools": {}, "sync": {}}
+        self._loaded = False
+
+    async def async_load(self) -> None:
+        if self._loaded:
+            return
+
+        stored = await self._store.async_load()
+
+        if stored:
+            self._data = {
+                "teams": stored.get("teams", {}),
+                "pools": stored.get("pools", {}),
+                "sync": stored.get("sync", {}),
+            }
+
+        self._loaded = True
+
+    async def async_save(self) -> None:
+        await self._store.async_save(self._data)
+
+    def register_team(
         self,
-        hass: HomeAssistant,
-    ) -> None:
-
-        self._hass = hass
-
-        self._base_path = (
-            Path(hass.config.path())
-            / ".storage"
-            / "knbsb"
-            / "history"
-        )
-
-        self._base_path.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-
-        # Team Key Generatie
-
-    @staticmethod
-    def build_team_key(
         club_name: str,
         team_code: str,
+        team_guid: str,
+        pool_id: int,
     ) -> str:
+        """Create the team or migrate a changed GUID; keeps history."""
 
-        safe_club = (
-            club_name
-            .strip()
-            .replace(" ", "_")
+        team_key = build_team_key(club_name, team_code)
+        team = self._data["teams"].setdefault(
+            team_key,
+            {
+                "club_name": club_name,
+                "team_code": team_code,
+                "current_team_guid": team_guid,
+                "known_team_guids": [],
+                "pool_ids": [],
+            },
         )
 
-        safe_team = (
-            team_code
-            .strip()
-            .replace(" ", "_")
-        )
-
-        return (
-            f"{safe_club}_{safe_team}"
-        )
-
-    # Bestandslocatie bepalen
-
-        def get_team_file(
-        self,
-        team_key: str,
-    ) -> Path:
-
-        return (
-            self._base_path
-            / f"{team_key}.json"
-        )
-
-    # Teamhistory aanmaken
-
-        def create_team_history(
-        self,
-        club_name: str,
-        team_code: str,
-        team_guid: str,
-    ) -> TeamHistory:
-
-        team_key = self.build_team_key(
-            club_name,
-            team_code,
-        )
-
-        return TeamHistory(
-            team_key=team_key,
-
-            club_name=club_name,
-
-            team_code=team_code,
-
-            current_team_guid=team_guid,
-
-            known_team_guids=[
-                team_guid
-            ],
-        )
-# Opslaan
-    async def save_team(
-        self,
-        team: TeamHistory,
-    ) -> None:
-
-        path = self.get_team_file(
-            team.team_key
-        )
-
-        data = {
-            "schema": 1,
-
-            "team_key":
-                team.team_key,
-
-            "club_name":
-                team.club_name,
-
-            "team_code":
-                team.team_code,
-
-            "current_team_guid":
-                team.current_team_guid,
-
-            "known_team_guids":
-                team.known_team_guids,
-
-            "matches": [
-                {
-                    "match_key":
-                        match.match_key,
-
-                    "status":
-                        match.status,
-
-                    "notes":
-                        match.notes,
-                }
-                for match
-                in team.matches
-            ],
-        }
-
-        path.write_text(
-            json.dumps(
-                data,
-                indent=2,
-            ),
-            encoding="utf-8",
-        )
-
-# Laden
-
-    async def load_team(
-        self,
-        team_key: str,
-    ) -> TeamHistory | None:
-
-        path = self.get_team_file(
-            team_key
-        )
-
-        if not path.exists():
-            return None
-
-        data = json.loads(
-            path.read_text(
-                encoding="utf-8"
-            )
-        )
-
-        return TeamHistory(
-            team_key=
-                data["team_key"],
-
-            club_name=
-                data["club_name"],
-
-            team_code=
-                data["team_code"],
-
-            current_team_guid=
-                data["current_team_guid"],
-
-            known_team_guids=
-                data.get(
-                    "known_team_guids",
-                    []
-                ),
-        )
-
-# GUID migratie
-
-    async def get_or_create_team(
-        self,
-        club_name: str,
-        team_code: str,
-        team_guid: str,
-    ) -> TeamHistory:
-
-        team_key = (
-            self.build_team_key(
-                club_name,
-                team_code,
-            )
-        )
-
-        team = await self.load_team(
-            team_key
-        )
-
-        if team is None:
-
-            team = (
-                self.create_team_history(
-                    club_name=
-                        club_name,
-
-                    team_code=
-                        team_code,
-
-                    team_guid=
-                        team_guid,
+        if team_guid not in team["known_team_guids"]:
+            if team["known_team_guids"]:
+                _LOGGER.info(
+                    "KNBSB team GUID changed %s -> %s",
+                    team_key,
+                    team_guid,
                 )
-            )
+            team["known_team_guids"].append(team_guid)
 
-            await self.save_team(
-                team
-            )
+        team["current_team_guid"] = team_guid
 
-            return team
+        if pool_id not in team["pool_ids"]:
+            team["pool_ids"].append(pool_id)
 
+        return team_key
 
-        if (
-            team_guid
-            not in
-            team.known_team_guids
-        ):
-
-            _LOGGER.info(
-                (
-                    "KNBSB team GUID gewijzigd "
-                    "%s -> %s"
-                ),
-                team.team_key,
-                team_guid,
-            )
-
-            team.known_team_guids.append(
-                team_guid
-            )
-
-
-        team.current_team_guid = (
-            team_guid
+    def update_pool(
+        self,
+        pool_id: int,
+        matches: list[dict[str, Any]],
+        last_sync: str,
+    ) -> None:
+        pool = self._data["pools"].setdefault(
+            str(pool_id),
+            {"pool_id": pool_id, "matches": {}},
         )
 
-        await self.save_team(
-            team
-        )
+        for match in matches:
+            pool["matches"][str(match["match_id"])] = match
 
-        return team
+        if matches:
+            pool["competition_name"] = matches[0].get("competition_name")
+
+        pool["last_sync"] = last_sync
+
+    def get_pool(self, pool_id: int) -> dict[str, Any] | None:
+        return self._data["pools"].get(str(pool_id))
+
+    def get_team(self, team_key: str) -> dict[str, Any] | None:
+        return self._data["teams"].get(team_key)
+
+    def get_last_sync(self, team_guid: str) -> str | None:
+        return self._data["sync"].get(team_guid)
+
+    def set_last_sync(self, team_guid: str, value: str) -> None:
+        self._data["sync"][team_guid] = value
+
+    def as_dict(self) -> dict[str, Any]:
+        return self._data
