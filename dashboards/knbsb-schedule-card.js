@@ -9,6 +9,24 @@
             ...config,
         };
 
+        if (!this._noteListener) {
+
+            this._noteListener = (event) => {
+
+                const button =
+                    event.target.closest("[data-note-match]");
+
+                if (button) {
+                    this.openNoteDialog(
+                        button.dataset.noteMatch,
+                        button.dataset.noteTitle || ""
+                    );
+                }
+            };
+
+            this.addEventListener("click", this._noteListener);
+        }
+
 
         if (
             this.config.view !== "coach"
@@ -2144,6 +2162,7 @@
             this._resultsPool =
                 data.pools[String(poolId)] || null;
 
+            this._resultsNotes = data.notes || {};
             this._resultsTeamGuid =
                 schedule.teamGuid;
 
@@ -2353,6 +2372,26 @@
                     letter-spacing: 0.8px;
                     text-transform: uppercase;
                     opacity: 0.6;
+                }
+                .res-note { margin-top: 10px; font-size: 13px; }
+                .res-note summary { cursor: pointer; font-weight: 600; }
+                .res-note-text {
+                    white-space: pre-wrap;
+                    margin: 8px 0;
+                    padding: 8px;
+                    border-radius: 8px;
+                    background: var(--secondary-background-color);
+                }
+                .res-note-edit {
+                    margin-top: 10px;
+                    padding: 4px 10px;
+                    border-radius: 12px;
+                    border: 1px solid var(--divider-color);
+                    background: transparent;
+                    color: var(--primary-text-color);
+                    cursor: pointer;
+                    font: inherit;
+                    font-size: 12px;
                 }
                 .message-card { padding: 16px; text-align: center; }
             </style>
@@ -2566,6 +2605,37 @@
             (homeWins && followed.has(match.home_team_guid))
             || (awayWins && followed.has(match.away_team_guid));
 
+        const note = (this._resultsNotes || {})[String(match.match_id)];
+
+        const noteTitle = this.escapeAttribute(
+            `${this.resultsTeamLabel(match, "home")} - `
+            + `${this.resultsTeamLabel(match, "away")}`
+        );
+
+        let noteHtml = "";
+
+        if (note && note.text) {
+            noteHtml = `
+                <details class="res-note">
+                    <summary>📝 Notitie</summary>
+                    <div class="res-note-text">${this.escapeHtml(note.text)}</div>
+                    <button type="button" class="res-note-edit"
+                        data-note-match="${this.escapeAttribute(match.match_id)}"
+                        data-note-title="${noteTitle}">
+                        Bewerken
+                    </button>
+                </details>
+            `;
+        } else if (match.status === "Final") {
+            noteHtml = `
+                <button type="button" class="res-note-edit"
+                    data-note-match="${this.escapeAttribute(match.match_id)}"
+                    data-note-title="${noteTitle}">
+                    📝 Notitie toevoegen
+                </button>
+            `;
+        }
+
         return `
             <ha-card class="res-card ${isOwn ? "own" : ""} ${followedWin ? "won" : ""}">
                 <div class="res-meta">
@@ -2595,6 +2665,7 @@
                         awayWins
                     )}
                 </div>
+                ${noteHtml}
             </ha-card>
         `;
     }
@@ -2997,6 +3068,15 @@
             longitude !== null &&
             longitude !== undefined;
 
+        const now = new Date();
+
+        const todayIso =
+            `${now.getFullYear()}-`
+            + `${String(now.getMonth() + 1).padStart(2, "0")}-`
+            + `${String(now.getDate()).padStart(2, "0")}`;
+
+        const isToday = match.date === todayIso;
+
 
         /*
          * GOOGLE MAPS NAVIGATIE
@@ -3264,6 +3344,24 @@
             }
 
 
+                    ${isToday && match.match_id
+                ? `
+                                <div class="navigation-container">
+                                    <button
+                                        type="button"
+                                        class="navigation-button"
+                                        style="cursor:pointer;border:none;font:inherit;"
+                                        data-note-match="${this.escapeAttribute(match.match_id)}"
+                                        data-note-title="${this.escapeAttribute(`${match.home_team_name || ""} - ${match.away_team_name || ""}`)}"
+                                    >
+                                        📝 Notitie
+                                    </button>
+                                </div>
+                            `
+                : ""
+            }
+
+
                     <!-- COMPETITIE -->
 
 
@@ -3282,6 +3380,122 @@
 
             </ha-card>
         `;
+    }
+
+    async openNoteDialog(matchId, title) {
+
+        if (document.getElementById("knbsb-note-dialog")) {
+            return;
+        }
+
+        const overlay = document.createElement("div");
+
+        overlay.id = "knbsb-note-dialog";
+
+        overlay.style.cssText =
+            "position:fixed;inset:0;z-index:9999;display:flex;"
+            + "align-items:center;justify-content:center;"
+            + "background:rgba(0,0,0,0.5);padding:16px;";
+
+        overlay.innerHTML = `
+            <div style="background:var(--card-background-color,#fff);
+                color:var(--primary-text-color,#000);
+                border-radius:16px;padding:16px;width:100%;
+                max-width:480px;box-sizing:border-box;">
+                <div style="font-weight:700;margin-bottom:10px;"
+                    id="knbsb-note-title"></div>
+                <textarea id="knbsb-note-text" rows="8" maxlength="5000"
+                    placeholder="Notitie..."
+                    style="width:100%;box-sizing:border-box;padding:8px;
+                    font:inherit;border-radius:8px;resize:vertical;
+                    border:1px solid var(--divider-color,#ccc);
+                    background:transparent;color:inherit;"></textarea>
+                <div id="knbsb-note-error"
+                    style="color:var(--error-color,red);
+                    min-height:18px;font-size:13px;"></div>
+                <div style="display:flex;gap:8px;justify-content:flex-end;">
+                    <button id="knbsb-note-delete">Wissen</button>
+                    <button id="knbsb-note-cancel">Annuleren</button>
+                    <button id="knbsb-note-save">Opslaan</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        const text = overlay.querySelector("#knbsb-note-text");
+        const error = overlay.querySelector("#knbsb-note-error");
+
+        overlay.querySelector("#knbsb-note-title").textContent = title;
+
+        const close = () => overlay.remove();
+
+        const save = async (value) => {
+
+            try {
+
+                await this._hass.callWS({
+                    type: "knbsb/note_set",
+                    match_id: String(matchId),
+                    text: value,
+                });
+
+                if (this._resultsNotes) {
+
+                    if (value.trim()) {
+                        this._resultsNotes[String(matchId)] = {
+                            text: value.trim(),
+                        };
+                    } else {
+                        delete this._resultsNotes[String(matchId)];
+                    }
+                }
+
+                close();
+
+                if (this.config.view === "results") {
+                    this.renderResults();
+                }
+
+            } catch (err) {
+
+                error.textContent = "Opslaan mislukt";
+            }
+        };
+
+        overlay.querySelector("#knbsb-note-cancel").onclick = close;
+        overlay.querySelector("#knbsb-note-save").onclick =
+            () => save(text.value);
+        overlay.querySelector("#knbsb-note-delete").onclick =
+            () => save("");
+
+        overlay.onclick = (event) => {
+            if (event.target === overlay) {
+                close();
+            }
+        };
+
+        text.disabled = true;
+
+        try {
+
+            const data = await this._hass.callWS({
+                type: "knbsb/history",
+                pool_ids: [],
+            });
+
+            const note = (data.notes || {})[String(matchId)];
+
+            text.value = note ? note.text || "" : "";
+
+        } catch (err) {
+
+            error.textContent = "Notitie kon niet worden geladen";
+        }
+
+        text.disabled = false;
+
+        text.focus();
     }
 
     normalizeUrl(value) {

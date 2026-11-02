@@ -21,11 +21,17 @@ class HistoryStore:
         teams: team_key -> club/team code/GUIDs/pool ids
         pools: pool_id  -> competition name + matches keyed by match_id
         sync:  team_guid -> last sync (ISO, UTC)
+        notes: match_id -> {text, updated_at} (never touched by syncs)
     """
 
     def __init__(self, hass: HomeAssistant) -> None:
         self._store: Store = Store(hass, STORAGE_VERSION, STORAGE_KEY)
-        self._data: dict[str, Any] = {"teams": {}, "pools": {}, "sync": {}}
+        self._data: dict[str, Any] = {
+            "teams": {},
+            "pools": {},
+            "sync": {},
+            "notes": {},
+        }
         self._loaded = False
 
     async def async_load(self) -> None:
@@ -39,9 +45,27 @@ class HistoryStore:
                 "teams": stored.get("teams", {}),
                 "pools": stored.get("pools", {}),
                 "sync": stored.get("sync", {}),
+                "notes": stored.get("notes", {}),
             }
 
         self._loaded = True
+
+    def set_note(self, match_id: str, text: str, updated_at: str) -> None:
+        """Set note text; an empty note without other data is removed."""
+
+        notes = self._data["notes"]
+        entry = notes.setdefault(str(match_id), {})
+        text = text.strip()
+
+        if text:
+            entry["text"] = text
+            entry["updated_at"] = updated_at
+        else:
+            entry.pop("text", None)
+            entry.pop("updated_at", None)
+
+        if not entry:
+            notes.pop(str(match_id), None)
 
     async def async_save(self) -> None:
         await self._store.async_save(self._data)

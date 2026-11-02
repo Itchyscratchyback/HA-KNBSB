@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
 import voluptuous as vol
 
 from homeassistant.components import websocket_api
@@ -11,6 +13,39 @@ from .const import DOMAIN
 @callback
 def async_register_websocket(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_get_history)
+    websocket_api.async_register_command(hass, ws_set_note)
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "knbsb/note_set",
+        vol.Required("match_id"): vol.Coerce(str),
+        vol.Required("text"): vol.All(str, vol.Length(max=5000)),
+    }
+)
+@websocket_api.async_response
+async def ws_set_note(hass, connection, msg) -> None:
+    """Save (or clear with empty text) the note of a match."""
+
+    manager = hass.data.get(DOMAIN, {}).get("history")
+
+    if manager is None:
+        connection.send_error(
+            msg["id"], "not_ready", "History not available"
+        )
+        return
+
+    manager.store.set_note(
+        msg["match_id"],
+        msg["text"],
+        datetime.now(timezone.utc).isoformat(),
+    )
+    await manager.store.async_save()
+
+    connection.send_result(
+        msg["id"],
+        manager.store.as_dict()["notes"].get(msg["match_id"], {}),
+    )
 
 
 @websocket_api.websocket_command(
@@ -27,7 +62,7 @@ def ws_get_history(hass, connection, msg) -> None:
 
     if manager is None:
         connection.send_result(
-            msg["id"], {"teams": {}, "pools": {}}
+            msg["id"], {"teams": {}, "pools": {}, "notes": {}}
         )
         return
 
@@ -41,5 +76,9 @@ def ws_get_history(hass, connection, msg) -> None:
 
     connection.send_result(
         msg["id"],
-        {"teams": data["teams"], "pools": pools},
+        {
+            "teams": data["teams"],
+            "pools": pools,
+            "notes": data["notes"],
+        },
     )
