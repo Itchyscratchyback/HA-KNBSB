@@ -3471,13 +3471,12 @@
 
     renderHeatmapLayer(hits) {
 
-        const colors = { g: "#e67e22", f: "#3498db", h: "#e74c3c" };
+        const colors = { g: "#ffd60a", f: "#1e6bff", h: "#e00000" };
 
         return hits
             .map((hit) => `
-                <circle cx="${hit.x * 100}" cy="${hit.y * 100}" r="7"
-                    fill="${colors[hit.t] || "#fff"}" opacity="0.35"
-                    style="mix-blend-mode:multiply"/>
+                <circle cx="${hit.x * 100}" cy="${hit.y * 100}" r="2.4"
+                    fill="${colors[hit.t] || "#fff"}" opacity="0.4"/>
                 <circle cx="${hit.x * 100}" cy="${hit.y * 100}" r="1.3"
                     fill="${colors[hit.t] || "#fff"}" stroke="#fff"
                     stroke-width="0.3"/>
@@ -3492,9 +3491,9 @@
         }
 
         const types = [
-            ["g", "Grondbal", "#e67e22"],
-            ["f", "Vlucht", "#3498db"],
-            ["h", "Homerun", "#e74c3c"],
+            ["g", "Grondbal", "#ffd60a"],
+            ["f", "Vlucht", "#1e6bff"],
+            ["h", "Homerun", "#e00000"],
         ];
 
         let current = "g";
