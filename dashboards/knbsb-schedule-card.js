@@ -2307,6 +2307,9 @@
                 ha-card.res-card.own {
                     border: 2px solid var(--primary-color);
                 }
+                ha-card.res-card.won {
+                    border: 2px solid gold;
+                }
                 .res-meta {
                     display: flex;
                     justify-content: space-between;
@@ -2554,8 +2557,17 @@
             match.home_team_guid === ownGuid
             || match.away_team_guid === ownGuid;
 
+        const followed = new Set(
+            this.getScheduleEntities(this._hass)
+                .map((item) => item.teamGuid)
+        );
+
+        const followedWin =
+            (homeWins && followed.has(match.home_team_guid))
+            || (awayWins && followed.has(match.away_team_guid));
+
         return `
-            <ha-card class="res-card ${isOwn ? "own" : ""}">
+            <ha-card class="res-card ${isOwn ? "own" : ""} ${followedWin ? "won" : ""}">
                 <div class="res-meta">
                     <span>${dateLabel} ${this.escapeHtml(match.time || "")}</span>
                     <span class="res-status">
