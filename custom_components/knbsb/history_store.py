@@ -21,7 +21,8 @@ class HistoryStore:
         teams: team_key -> club/team code/GUIDs/pool ids
         pools: pool_id  -> competition name + matches keyed by match_id
         sync:  team_guid -> last sync (ISO, UTC)
-        notes: match_id -> {text, updated_at} (never touched by syncs)
+        notes: match_id -> {text, updated_at, hits:[{x,y,t}]} (never touched
+               by syncs; x/y are 0..1 field coordinates, t is g/f/h)
     """
 
     def __init__(self, hass: HomeAssistant) -> None:
@@ -49,6 +50,20 @@ class HistoryStore:
             }
 
         self._loaded = True
+
+    def set_hits(self, match_id: str, hits: list[dict[str, Any]]) -> None:
+        """Replace the heatmap points of a match; empty list clears them."""
+
+        notes = self._data["notes"]
+        entry = notes.setdefault(str(match_id), {})
+
+        if hits:
+            entry["hits"] = hits
+        else:
+            entry.pop("hits", None)
+
+        if not entry:
+            notes.pop(str(match_id), None)
 
     def set_note(self, match_id: str, text: str, updated_at: str) -> None:
         """Set note text; an empty note without other data is removed."""

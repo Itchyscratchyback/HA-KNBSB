@@ -14,6 +14,48 @@ from .const import DOMAIN
 def async_register_websocket(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_get_history)
     websocket_api.async_register_command(hass, ws_set_note)
+    websocket_api.async_register_command(hass, ws_set_hits)
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "knbsb/hits_set",
+        vol.Required("match_id"): vol.Coerce(str),
+        vol.Required("hits"): vol.All(
+            [
+                {
+                    vol.Required("x"): vol.All(
+                        vol.Coerce(float), vol.Range(min=0, max=1)
+                    ),
+                    vol.Required("y"): vol.All(
+                        vol.Coerce(float), vol.Range(min=0, max=1)
+                    ),
+                    vol.Required("t"): vol.In(["g", "f", "h"]),
+                }
+            ],
+            vol.Length(max=500),
+        ),
+    }
+)
+@websocket_api.async_response
+async def ws_set_hits(hass, connection, msg) -> None:
+    """Replace the heatmap points of a match."""
+
+    manager = hass.data.get(DOMAIN, {}).get("history")
+
+    if manager is None:
+        connection.send_error(
+            msg["id"], "not_ready", "History not available"
+        )
+        return
+
+    manager.store.set_hits(msg["match_id"], msg["hits"])
+    await manager.store.async_save()
+
+    connection.send_result(
+        msg["id"],
+        manager.store.as_dict()["notes"].get(msg["match_id"], {}),
+    )
 
 
 @websocket_api.websocket_command(

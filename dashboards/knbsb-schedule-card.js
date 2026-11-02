@@ -13,6 +13,19 @@
 
             this._noteListener = (event) => {
 
+                const heat =
+                    event.target.closest("[data-hits-match]");
+
+                if (heat) {
+                    this.openHeatmapDialog(
+                        heat.dataset.hitsMatch,
+                        heat.dataset.hitsTitle || "",
+                        heat.dataset.hitsKind || "baseball"
+                    );
+
+                    return;
+                }
+
                 const button =
                     event.target.closest("[data-note-match]");
 
@@ -2636,6 +2649,19 @@
             `;
         }
 
+        const hitCount = note && note.hits ? note.hits.length : 0;
+
+        const heatHtml = (match.status === "Final" || hitCount)
+            ? `
+                <button type="button" class="res-note-edit"
+                    data-hits-match="${this.escapeAttribute(match.match_id)}"
+                    data-hits-kind="${this.fieldKind(match.competition_name)}"
+                    data-hits-title="${noteTitle}">
+                    🎯 Heatmap${hitCount ? ` (${hitCount})` : ""}
+                </button>
+            `
+            : "";
+
         return `
             <ha-card class="res-card ${isOwn ? "own" : ""} ${followedWin ? "won" : ""}">
                 <div class="res-meta">
@@ -2666,6 +2692,7 @@
                     )}
                 </div>
                 ${noteHtml}
+                ${heatHtml}
             </ha-card>
         `;
     }
@@ -3355,6 +3382,24 @@
                                         data-note-title="${this.escapeAttribute(`${match.home_team_name || ""} - ${match.away_team_name || ""}`)}"
                                     >
                                         📝 Notitie
+                    </button>
+                                </div>
+                            `
+                : ""
+            }
+
+                    ${isToday && match.match_id
+                ? `
+                                <div class="navigation-container">
+                                    <button
+                                        type="button"
+                                        class="navigation-button"
+                                        style="cursor:pointer;border:none;font:inherit;"
+                                        data-hits-match="${this.escapeAttribute(match.match_id)}"
+                                        data-hits-kind="${this.fieldKind(match.competition)}"
+                                        data-hits-title="${this.escapeAttribute(`${match.home_team_name || ""} - ${match.away_team_name || ""}`)}"
+                                    >
+                                        🎯 Heatmap
                                     </button>
                                 </div>
                             `
@@ -3380,6 +3425,253 @@
 
             </ha-card>
         `;
+    }
+
+    fieldKind(competitionName) {
+
+        return /softbal|softball|slowpitch/i.test(competitionName || "")
+            ? "softball"
+            : "baseball";
+    }
+
+    renderFieldSvg(kind) {
+
+        const soft = kind === "softball";
+        const scale = soft ? 0.8 : 1;
+        const side = soft ? 22 : 30;
+        const hx = 50;
+        const hy = 92;
+        const edge = 48 * scale;
+        const radius = 68 * scale;
+
+        const bases = [
+            [hx, hy],
+            [hx + side * 0.707, hy - side * 0.707 * 1.0],
+            [hx, hy - side * 1.414],
+            [hx - side * 0.707, hy - side * 0.707 * 1.0],
+        ];
+
+        const base = ([x, y]) =>
+            `<rect x="${x - 1.6}" y="${y - 1.6}" width="3.2" height="3.2"
+                fill="#fff" transform="rotate(45 ${x} ${y})"/>`;
+
+        const diamond = bases.map(([x, y]) => `${x},${y}`).join(" ");
+
+        return `
+            <path d="M${hx} ${hy} L${hx - edge} ${hy - edge}
+                A${radius} ${radius} 0 0 1 ${hx + edge} ${hy - edge} Z"
+                fill="#4c9a4c" stroke="#fff" stroke-width="0.6"/>
+            <polygon points="${diamond}" fill="#c9a26b" stroke="#fff"
+                stroke-width="0.5"/>
+            <circle cx="${hx}" cy="${hy - side * 0.707}" r="1.6"
+                fill="#c9a26b"/>
+            ${bases.map(base).join("")}
+        `;
+    }
+
+    renderHeatmapLayer(hits) {
+
+        const colors = { g: "#e67e22", f: "#3498db", h: "#e74c3c" };
+
+        return hits
+            .map((hit) => `
+                <circle cx="${hit.x * 100}" cy="${hit.y * 100}" r="7"
+                    fill="${colors[hit.t] || "#fff"}" opacity="0.35"
+                    style="mix-blend-mode:multiply"/>
+                <circle cx="${hit.x * 100}" cy="${hit.y * 100}" r="1.3"
+                    fill="${colors[hit.t] || "#fff"}" stroke="#fff"
+                    stroke-width="0.3"/>
+            `)
+            .join("");
+    }
+
+    async openHeatmapDialog(matchId, title, kind) {
+
+        if (document.getElementById("knbsb-heat-dialog")) {
+            return;
+        }
+
+        const types = [
+            ["g", "Grondbal", "#e67e22"],
+            ["f", "Vlucht", "#3498db"],
+            ["h", "Homerun", "#e74c3c"],
+        ];
+
+        let current = "g";
+        let hits = [];
+
+        const overlay = document.createElement("div");
+
+        overlay.id = "knbsb-heat-dialog";
+
+        overlay.style.cssText =
+            "position:fixed;inset:0;z-index:9999;display:flex;"
+            + "align-items:center;justify-content:center;"
+            + "background:rgba(0,0,0,0.5);padding:12px;";
+
+        overlay.innerHTML = `
+            <div style="background:var(--card-background-color,#fff);
+                color:var(--primary-text-color,#000);border-radius:16px;
+                padding:14px;width:100%;max-width:520px;
+                max-height:100%;overflow:auto;box-sizing:border-box;">
+                <div style="font-weight:700;margin-bottom:4px;"
+                    id="knbsb-heat-title"></div>
+                <div style="font-size:12px;opacity:0.7;margin-bottom:8px;">
+                    Kies een type en tik op het veld waar de bal landt.
+                </div>
+                <div id="knbsb-heat-types"
+                    style="display:flex;gap:6px;margin-bottom:8px;"></div>
+                <svg id="knbsb-heat-svg" viewBox="0 0 100 100"
+                    style="width:100%;display:block;touch-action:manipulation;
+                    border-radius:12px;background:#2f6f2f;cursor:crosshair;">
+                    ${this.renderFieldSvg(kind)}
+                    <g id="knbsb-heat-layer"></g>
+                </svg>
+                <div id="knbsb-heat-error"
+                    style="color:var(--error-color,red);
+                    min-height:18px;font-size:13px;"></div>
+                <div style="display:flex;gap:8px;justify-content:flex-end;
+                    flex-wrap:wrap;">
+                    <button id="knbsb-heat-undo">Laatste ongedaan</button>
+                    <button id="knbsb-heat-clear">Alles wissen</button>
+                    <button id="knbsb-heat-cancel">Sluiten</button>
+                    <button id="knbsb-heat-save">Opslaan</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        overlay.querySelector("#knbsb-heat-title").textContent = title;
+
+        const svg = overlay.querySelector("#knbsb-heat-svg");
+        const layer = overlay.querySelector("#knbsb-heat-layer");
+        const typeBox = overlay.querySelector("#knbsb-heat-types");
+        const error = overlay.querySelector("#knbsb-heat-error");
+
+        const draw = () => {
+
+            layer.innerHTML = this.renderHeatmapLayer(hits);
+
+            typeBox.innerHTML = types
+                .map(([key, label, color]) => {
+
+                    const count =
+                        hits.filter((hit) => hit.t === key).length;
+
+                    return `<button data-type="${key}"
+                        style="flex:1;padding:6px;border-radius:10px;
+                        cursor:pointer;font:inherit;color:inherit;
+                        background:transparent;
+                        border:2px solid ${key === current
+                            ? color
+                            : "var(--divider-color,#ccc)"};">
+                        <span style="color:${color}">●</span>
+                        ${label} (${count})</button>`;
+                })
+                .join("");
+
+            typeBox.querySelectorAll("button").forEach((button) => {
+                button.onclick = () => {
+                    current = button.dataset.type;
+                    draw();
+                };
+            });
+        };
+
+        const close = () => overlay.remove();
+
+        svg.onclick = (event) => {
+
+            const rect = svg.getBoundingClientRect();
+
+            const x = (event.clientX - rect.left) / rect.width;
+            const y = (event.clientY - rect.top) / rect.height;
+
+            hits.push({
+                x: Math.min(1, Math.max(0, Math.round(x * 1000) / 1000)),
+                y: Math.min(1, Math.max(0, Math.round(y * 1000) / 1000)),
+                t: current,
+            });
+
+            draw();
+        };
+
+        overlay.querySelector("#knbsb-heat-undo").onclick = () => {
+            hits.pop();
+            draw();
+        };
+
+        overlay.querySelector("#knbsb-heat-clear").onclick = () => {
+            hits = [];
+            draw();
+        };
+
+        overlay.querySelector("#knbsb-heat-cancel").onclick = close;
+
+        overlay.querySelector("#knbsb-heat-save").onclick = async () => {
+
+            try {
+
+                await this._hass.callWS({
+                    type: "knbsb/hits_set",
+                    match_id: String(matchId),
+                    hits,
+                });
+
+                if (this._resultsNotes) {
+
+                    const key = String(matchId);
+                    const entry = { ...(this._resultsNotes[key] || {}) };
+
+                    if (hits.length) {
+                        entry.hits = hits;
+                    } else {
+                        delete entry.hits;
+                    }
+
+                    if (Object.keys(entry).length) {
+                        this._resultsNotes[key] = entry;
+                    } else {
+                        delete this._resultsNotes[key];
+                    }
+                }
+
+                close();
+
+                if (this.config.view === "results") {
+                    this.renderResults();
+                }
+
+            } catch (err) {
+
+                error.textContent = "Opslaan mislukt";
+            }
+        };
+
+        overlay.onclick = (event) => {
+            if (event.target === overlay) {
+                close();
+            }
+        };
+
+        try {
+
+            const data = await this._hass.callWS({
+                type: "knbsb/history",
+                pool_ids: [],
+            });
+
+            const note = (data.notes || {})[String(matchId)];
+
+            hits = note && note.hits ? [...note.hits] : [];
+
+        } catch (err) {
+
+            error.textContent = "Heatmap kon niet worden geladen";
+        }
+
+        draw();
     }
 
     async openNoteDialog(matchId, title) {
@@ -3442,12 +3734,19 @@
 
                 if (this._resultsNotes) {
 
+                    const key = String(matchId);
+                    const entry = { ...(this._resultsNotes[key] || {}) };
+
                     if (value.trim()) {
-                        this._resultsNotes[String(matchId)] = {
-                            text: value.trim(),
-                        };
+                        entry.text = value.trim();
                     } else {
-                        delete this._resultsNotes[String(matchId)];
+                        delete entry.text;
+                    }
+
+                    if (Object.keys(entry).length) {
+                        this._resultsNotes[key] = entry;
+                    } else {
+                        delete this._resultsNotes[key];
                     }
                 }
 
