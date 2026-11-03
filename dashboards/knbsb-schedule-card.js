@@ -3437,35 +3437,116 @@
     renderFieldSvg(kind) {
 
         const soft = kind === "softball";
-        const scale = soft ? 0.8 : 1;
-        const side = soft ? 22 : 30;
-        const hx = 50;
-        const hy = 92;
-        const edge = 48 * scale;
-        const radius = 68 * scale;
 
-        const bases = [
-            [hx, hy],
-            [hx + side * 0.707, hy - side * 0.707 * 1.0],
-            [hx, hy - side * 1.414],
-            [hx - side * 0.707, hy - side * 0.707 * 1.0],
+        const base = soft ? 65 : 90;
+        const mound = soft ? 50 : 60.5;
+        const fenceSide = soft ? 265 : 330;
+        const fenceCenter = soft ? 315 : 400;
+        const k = base / 90;
+
+        const q = Math.SQRT1_2;
+        const lx = fenceSide * q;
+
+        // Ellipse through the foul-line ends and centre field.
+        const c0 = fenceCenter * 0.375;
+        const b = fenceCenter - c0;
+        const ratio = (lx - c0) / b;
+        const a = lx / Math.sqrt(1 - ratio * ratio);
+
+        const track = 14;
+        const pad = 6;
+        const xMax = lx + track / 2 + pad;
+        const yTop = fenceCenter + track / 2 + pad;
+        const yBottom = -(track / 2 + pad + 6);
+
+        const scale = 74 / Math.max(2 * xMax, yTop - yBottom);
+        const margin = (100 - scale * (yTop - yBottom)) / 2;
+        const ty = margin + scale * yTop;
+
+        const f = (n) => Number(n.toFixed(2));
+        const id = `knbsb-${kind}`;
+
+        const outline =
+            `M0 0 L${f(-lx)} ${f(lx)} `
+            + `A${f(a)} ${f(b)} 0 0 0 ${f(lx)} ${f(lx)} Z`;
+
+        const diamondCenter = base * q;
+        const inset = (x, y) =>
+            `${f(x * 0.86)},${f(diamondCenter + (y - diamondCenter) * 0.86)}`;
+
+        const diamond = [
+            [0, 0],
+            [base * q, base * q],
+            [0, base * 2 * q],
+            [-base * q, base * q],
         ];
 
-        const base = ([x, y]) =>
-            `<rect x="${x - 1.6}" y="${y - 1.6}" width="3.2" height="3.2"
-                fill="#fff" transform="rotate(45 ${x} ${y})"/>`;
+        const baseSquare = ([x, y], size) =>
+            `<rect x="${f(x - size / 2)}" y="${f(y - size / 2)}"
+                width="${size}" height="${size}" fill="#fff"
+                transform="rotate(45 ${f(x)} ${f(y)})"/>`;
 
-        const diamond = bases.map(([x, y]) => `${x},${y}`).join(" ");
+        const stripes = [];
+        for (let x = -fenceSide, i = 0; x < fenceSide; x += 30, i++) {
+            if (i % 2 === 0) {
+                stripes.push(
+                    `<rect x="${x}" y="0" width="30" height="${fenceCenter + 40}"
+                        fill="#5aa845" opacity="0.55"/>`
+                );
+            }
+        }
+
+        const p = 1.9; const plate = `${f(-2.2 * k * p)},${f(0.6 * k * p)} ${f(2.2 * k * p)},${f(0.6 * k * p)} `
+            + `${f(2.2 * k * p)},${f(-1.2 * k * p)} 0,${f(-3 * k * p)} `
+            + `${f(-2.2 * k * p)},${f(-1.2 * k * p)}`;
+
+        const box = (x) =>
+            `<rect x="${f(x)}" y="${f(-3 * k)}" width="${f(4 * k)}"
+                height="${f(6 * k)}" fill="none" stroke="#fff"
+                stroke-width="0.6"/>`;
 
         return `
-            <path d="M${hx} ${hy} L${hx - edge} ${hy - edge}
-                A${radius} ${radius} 0 0 1 ${hx + edge} ${hy - edge} Z"
-                fill="#4c9a4c" stroke="#fff" stroke-width="0.6"/>
-            <polygon points="${diamond}" fill="#c9a26b" stroke="#fff"
-                stroke-width="0.5"/>
-            <circle cx="${hx}" cy="${hy - side * 0.707}" r="1.6"
-                fill="#c9a26b"/>
-            ${bases.map(base).join("")}
+            <rect x="0" y="0" width="100" height="100" fill="#a39b8b"/>
+            <g transform="translate(50 ${f(ty)}) scale(${f(scale)} ${f(-scale)})">
+                <defs>
+                    <clipPath id="${id}-field"><path d="${outline}"/></clipPath>
+                    <clipPath id="${id}-fair">
+                        <polygon points="0,0 ${-fenceCenter * 2},${fenceCenter * 2}
+                            ${fenceCenter * 2},${fenceCenter * 2}"/>
+                    </clipPath>
+                </defs>
+
+                <path d="${outline}" fill="#e6cf8f" stroke="#e6cf8f"
+                    stroke-width="${track}" stroke-linejoin="round"/>
+                <path d="${outline}" fill="#4f9a3d"/>
+
+                <g clip-path="url(#${id}-field)">
+                    ${stripes.join("")}
+
+                    <g clip-path="url(#${id}-fair)">
+                        <circle cx="0" cy="${mound}" r="${f(95 * k)}"
+                            fill="#e6cf8f"/>
+                    </g>
+
+                    <polygon points="${diamond.map(([x, y]) => inset(x, y)).join(" ")}"
+                        fill="#4f9a3d"/>
+
+                    <circle cx="0" cy="0" r="${f(17 * k)}" fill="#e6cf8f"/>
+                    <circle cx="0" cy="${mound}" r="${f(11 * k)}" fill="#e6cf8f"/>
+                </g>
+
+                <path d="M${f(-lx)} ${f(lx)} L0 0 L${f(lx)} ${f(lx)}"
+                    fill="none" stroke="#fff" stroke-width="1.6"/>
+
+                ${box(-7 * k - 4 * k)}
+                ${box(7 * k)}
+
+                <rect x="${f(-2.5 * k)}" y="${f(mound - 0.7 * k)}"
+                    width="${f(5 * k)}" height="${f(1.4 * k)}" fill="#fff"/>
+
+                ${diamond.slice(1).map((p) => baseSquare(p, f(7 * k))).join("")}
+                <polygon points="${plate}" fill="#fff"/>
+            </g>
         `;
     }
 
@@ -3478,8 +3559,8 @@
                 <circle cx="${hit.x * 100}" cy="${hit.y * 100}" r="2.4"
                     fill="${colors[hit.t] || "#fff"}" opacity="0.4"/>
                 <circle cx="${hit.x * 100}" cy="${hit.y * 100}" r="1.3"
-                    fill="${colors[hit.t] || "#fff"}" stroke="#fff"
-                    stroke-width="0.3"/>
+                    fill="${colors[hit.t] || "#fff"}" stroke="#000"
+                    stroke-width="0.35"/>
             `)
             .join("");
     }
@@ -3522,7 +3603,7 @@
                     style="display:flex;gap:6px;margin-bottom:8px;"></div>
                 <svg id="knbsb-heat-svg" viewBox="0 0 100 100"
                     style="width:100%;display:block;touch-action:manipulation;
-                    border-radius:12px;background:#2f6f2f;cursor:crosshair;">
+                    border-radius:12px;background:#a39b8b;cursor:crosshair;">
                     ${this.renderFieldSvg(kind)}
                     <g id="knbsb-heat-layer"></g>
                 </svg>
