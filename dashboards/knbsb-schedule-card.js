@@ -3556,11 +3556,11 @@
 
         return hits
             .map((hit) => `
-                <circle cx="${hit.x * 100}" cy="${hit.y * 100}" r="2.4"
+                <circle cx="${hit.x * 100}" cy="${hit.y * 100}"                 r="1.8"
                     fill="${colors[hit.t] || "#fff"}" opacity="0.4"/>
-                <circle cx="${hit.x * 100}" cy="${hit.y * 100}" r="1.3"
+                                <circle cx="${hit.x * 100}" cy="${hit.y * 100}" r="0.4"
                     fill="${colors[hit.t] || "#fff"}" stroke="#000"
-                    stroke-width="0.35"/>
+                                    stroke-width="0.9"/>
             `)
             .join("");
     }
