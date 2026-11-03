@@ -3573,7 +3573,7 @@
 
         const types = [
             ["g", "Grondbal", "#ffd60a"],
-            ["f", "Lined drive", "#1e6bff"],
+            ["f", "Line drive", "#1e6bff"],
             ["h", "Homerun", "#e00000"],
         ];
 
