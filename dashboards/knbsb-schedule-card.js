@@ -2639,7 +2639,7 @@
                     </button>
                 </details>
             `;
-        } else if (match.status === "Final") {
+        } else if (match.match_id) {
             noteHtml = `
                 <button type="button" class="res-note-edit"
                     data-note-match="${this.escapeAttribute(match.match_id)}"
@@ -2651,7 +2651,7 @@
 
         const hitCount = note && note.hits ? note.hits.length : 0;
 
-        const heatHtml = (match.status === "Final" || hitCount)
+        const heatHtml = match.match_id
             ? `
                 <button type="button" class="res-note-edit"
                     data-hits-match="${this.escapeAttribute(match.match_id)}"
