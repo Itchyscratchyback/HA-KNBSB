@@ -3459,7 +3459,7 @@
         const yTop = fenceCenter + track / 2 + pad;
         const yBottom = -(track / 2 + pad + 6);
 
-        const scale = 74 / Math.max(2 * xMax, yTop - yBottom);
+        const scale = 97 / Math.max(2 * xMax, yTop - yBottom);
         const margin = (100 - scale * (yTop - yBottom)) / 2;
         const ty = margin + scale * yTop;
 
@@ -3592,7 +3592,7 @@
         overlay.innerHTML = `
             <div style="background:var(--card-background-color,#fff);
                 color:var(--primary-text-color,#000);border-radius:16px;
-                padding:14px;width:100%;max-width:520px;
+                padding:10px;width:100%;max-width:520px;
                 max-height:100%;overflow:auto;box-sizing:border-box;">
                 <div style="font-weight:700;margin-bottom:4px;"
                     id="knbsb-heat-title"></div>
