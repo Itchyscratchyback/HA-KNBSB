@@ -19,7 +19,7 @@
       }
     },
     "error": {
-      "invalid_url": "Ongeldige URL. Gebruik een teamprogramma-URL van knbsb.nl met de vorm .../clubs/<id>/teams/<id>/program?poolId=<nummer>.",
+      "invalid_url": "Ongeldige URL. Gebruik een teamprogramma-URL van knbsb.nl.",
       "cannot_connect": "Kan geen wedstrijden ophalen bij KNBSB/FOYS. Controleer de URL en je internetverbinding en probeer het opnieuw."
     },
     "abort": {
