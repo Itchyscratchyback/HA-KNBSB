@@ -5,6 +5,10 @@
     "@Itchyscratchyback"
   ],
   "config_flow": true,
+  "dependencies": [
+    "frontend",
+    "http"
+  ],
   "documentation": "https://github.com/Itchyscratchyback/HA-KNBSB",
   "integration_type": "service",
   "iot_class": "cloud_polling",

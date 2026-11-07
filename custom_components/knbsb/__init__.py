@@ -1,5 +1,8 @@
 import logging
+from pathlib import Path
 
+from homeassistant.components.frontend import add_extra_js_url
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.event import async_track_time_interval
@@ -22,12 +25,37 @@ PLATFORMS = [
     "calendar",
 ]
 
+CARD_FILE = "knbsb-schedule-card.js"
+CARD_URL_BASE = f"/{DOMAIN}_static"
+
+
+async def _async_register_card(hass: HomeAssistant) -> None:
+    """Serve the bundled dashboard card and load it in the frontend."""
+
+    domain_data = hass.data.setdefault(DOMAIN, {})
+
+    if domain_data.get("card_registered"):
+        return
+
+    card_path = Path(__file__).parent / "www" / CARD_FILE
+
+    await hass.http.async_register_static_paths(
+        [StaticPathConfig(CARD_URL_BASE, str(card_path.parent), False)]
+    )
+
+    version = card_path.stat().st_mtime_ns
+    add_extra_js_url(hass, f"{CARD_URL_BASE}/{CARD_FILE}?v={version}")
+
+    domain_data["card_registered"] = True
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
 ) -> bool:
     """Set up KNBSB from a config entry."""
+
+    await _async_register_card(hass)
 
     #
     # Bestaande single-team installaties

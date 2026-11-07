@@ -17,7 +17,7 @@ Hoofdpunten van deze integratie:
 -   Geplande vertrektijd vanaf "zone.home"
 -   Geplande aankomst tijd op locatie
 -   Instelbare tijd aanwezig voor wedstrijden thuis of uit (wordt meegenomen in vertrektijd)
--   One click Navigatie knop via HA-KNBSB-Card (losse integratie)
+-   One click Navigatie knop via de meegeleverde KNBSB Schedule card
 -   Navigatie via Android Auto | Apple carplay Homeassistant  Kies: **Navigatie** -> **knbsb_next_match_address**
 
 Voor rijafstand en reistijd wordt OpenRouteService.org gebruikt. Dit is een gratis service waar je kan registreren voor een eigen API key.
@@ -68,10 +68,16 @@ Per gevolgd team krijg je:
 
 Uitslagen, standen, notities en heatmaps worden opgeslagen in `.storage/knbsb.history` en getoond in de dashboardkaart.
 
-Zie hieronder de view die de integratie ondersteunt samen met de HA-KNBSB-Card integratie
+### Dashboardkaart
+
+De kaart zit in de integratie (`custom_components/knbsb/www/`) en wordt bij het opstarten automatisch geladen; je hoeft geen aparte resource of HACS-plugin toe te voegen. Voeg de kaart toe aan een dashboard met type `custom:knbsb-schedule-card`.
+
+> Gebruik je de kaart nog als losse resource (`/hacsfiles/...` of `/local/...`)? Verwijder die onder **Instellingen > Dashboards > Resources**, anders wordt hij dubbel geladen.
+
+Zie hieronder de view die de integratie ondersteunt samen met de meegeleverde KNBSB Schedule card
 
 ---
-### Onderstaande is mogelijk met de HA-KNBSB Schedule card [losse HACS]
+### Onderstaande is mogelijk met de KNBSB Schedule card (meegeleverd)
 <img width="130%" height="130%" alt="screenshot-3" src="https://github.com/user-attachments/assets/7b0201b6-5469-4009-b607-ed334743df44"/>
 
 
