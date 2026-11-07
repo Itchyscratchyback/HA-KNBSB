@@ -24,6 +24,50 @@ Voor rijafstand en reistijd wordt OpenRouteService.org gebruikt. Dit is een grat
 
 > Dit is een onofficiële community-integratie en is niet verbonden aan of goedgekeurd door de KNBSB.
 
+## Installatie
+
+1. Open **HACS** in Home Assistant, kies de drie puntjes rechtsboven > **Aangepaste repositories** en voeg `https://github.com/Itchyscratchyback/HA-KNBSB` toe met categorie **Integratie**.
+2. Zoek **KNBSB** in HACS, download de integratie en herstart Home Assistant.
+3. Ga naar **Instellingen > Apparaten & services > Integratie toevoegen** en kies **KNBSB**.
+4. Vul in:
+   - **KNBSB Team URL**: zie hieronder.
+   - **OpenRouteService API-sleutel**: zie hieronder.
+   - **Tijd vooraf aanwezig** bij uit- en thuiswedstrijden (in minuten; er wordt automatisch 5 minuten parkeertijd bij opgeteld).
+5. Wil je meerdere teams volgen? Voeg de integratie opnieuw toe met de URL van het andere team.
+
+De integratie controleert de URL en haalt bij het toevoegen meteen de wedstrijden op. Bij een foute URL of onbereikbare API zie je direct een foutmelding.
+
+### De team-URL vinden
+
+1. Ga naar [knbsb.nl/competities/teams](https://www.knbsb.nl/competities/teams/) en open de pagina van je team.
+2. Kies **Programma** en kopieer de URL uit de adresbalk. Die moet er zo uitzien:
+
+```
+https://www.knbsb.nl/competities/teams/#/clubs/<club-id>/teams/<team-id>/program?poolId=<poule-nummer>
+```
+
+Een URL zonder `/program?poolId=...` (bijvoorbeeld de uitslagen- of standenpagina) wordt niet geaccepteerd.
+
+### OpenRouteService API-sleutel
+
+1. Maak een gratis account op [openrouteservice.org](https://openrouteservice.org/dev/#/signup).
+2. Maak onder **Dashboard > Request a token** een token aan van het type *Free*.
+3. Plak dit token in het veld **OpenRouteService API-sleutel**.
+
+> **Privacy:** voor de routeberekening worden de coördinaten van je thuislocatie (`zone.home`) en van de wedstrijdlocaties naar OpenRouteService (HeiGIT, `api.heigit.org`) gestuurd. Andere gegevens worden daarheen niet verstuurd.
+
+### Entiteiten
+
+Per gevolgd team krijg je:
+
+- Sensoren voor de volgende wedstrijd: tegenstander, datum, tijd, locatie, adres (navigatie), logo, thuis/uit en aantal resterende wedstrijden.
+- Reissensoren: rijafstand, reistijd, vertrektijd en aankomsttijd.
+- Sensoren voor teamnaam, teamlogo, tegenstander en tegenstanderlogo.
+- Een **Schedule**-sensor met het volledige programma.
+- Een **kalender** (`calendar.*`) met alle komende wedstrijden.
+
+Uitslagen, standen, notities en heatmaps worden opgeslagen in `.storage/knbsb.history` en getoond in de dashboardkaart.
+
 Zie hieronder de view die de integratie ondersteunt samen met de HA-KNBSB-Card integratie
 
 ---

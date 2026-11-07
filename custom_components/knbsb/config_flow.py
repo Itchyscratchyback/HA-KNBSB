@@ -1,6 +1,14 @@
+import asyncio
+
+import aiohttp
 import voluptuous as vol
 
 from homeassistant import config_entries
+from homeassistant.helpers.aiohttp_client import (
+    async_get_clientsession,
+)
+
+from .api import FoysApi, parse_team_url
 
 from .const import (
     CONF_AWAY_ARRIVAL_MINUTES,
@@ -42,41 +50,82 @@ class KNBSBConfigFlow(
     ):
         """Handle the initial KNBSB configuration step."""
 
+        errors = {}
+
         if user_input is not None:
 
-            await self.async_set_unique_id(
-                user_input[
-                    CONF_TEAM_URL
-                ]
-            )
-
-            self._abort_if_unique_id_configured()
-
-            team_slot = (
-                self._get_next_team_slot()
-            )
-
-            entry_data = {
+            user_input = {
                 **user_input,
-                CONF_TEAM_SLOT:
-                    team_slot,
+                CONF_TEAM_URL:
+                    user_input[CONF_TEAM_URL].strip(),
             }
 
-            return self.async_create_entry(
-                title="KNBSB",
-                data=entry_data,
-            )
+            try:
+                parsed = parse_team_url(
+                    user_input[CONF_TEAM_URL]
+                )
+            except ValueError:
+                errors[CONF_TEAM_URL] = "invalid_url"
+            else:
+                api = FoysApi(
+                    async_get_clientsession(self.hass),
+                    parsed["organisation_id"],
+                    parsed["team_guid"],
+                    parsed["pool_id"],
+                    user_input[CONF_ORS_API_KEY],
+                )
+
+                try:
+                    await api.get_matches()
+                except (
+                    aiohttp.ClientError,
+                    asyncio.TimeoutError,
+                    ValueError,
+                    KeyError,
+                ):
+                    errors["base"] = "cannot_connect"
+
+            if not errors:
+                await self.async_set_unique_id(
+                    user_input[
+                        CONF_TEAM_URL
+                    ]
+                )
+
+                self._abort_if_unique_id_configured()
+
+                team_slot = (
+                    self._get_next_team_slot()
+                )
+
+                entry_data = {
+                    **user_input,
+                    CONF_TEAM_SLOT:
+                        team_slot,
+                }
+
+                return self.async_create_entry(
+                    title="KNBSB",
+                    data=entry_data,
+                )
 
         return self.async_show_form(
             step_id="user",
+            errors=errors,
             data_schema=vol.Schema(
                 {
                     vol.Required(
-                        CONF_TEAM_URL
+                        CONF_TEAM_URL,
+                        default=(user_input or {}).get(
+                            CONF_TEAM_URL, ""
+                        ),
                     ): str,
 
                     vol.Required(
-                        CONF_ORS_API_KEY
+                        CONF_ORS_API_KEY,
+                        default=(user_input or {}).get(
+                            CONF_ORS_API_KEY, ""
+                        ),
                     ): str,
 
                     vol.Required(
