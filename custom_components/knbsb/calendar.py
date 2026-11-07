@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
 
 from homeassistant.components.calendar import (
     CalendarEntity,
     CalendarEvent,
 )
+from homeassistant.util import dt as dt_util
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
 )
@@ -53,9 +53,7 @@ class KNBSBCalendarEntity(
         )
 
         return dt.replace(
-            tzinfo=ZoneInfo(
-                "Europe/Amsterdam"
-            )
+            tzinfo=dt_util.get_default_time_zone()
         )
 
 

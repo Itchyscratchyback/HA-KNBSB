@@ -1,8 +1,8 @@
 import logging
 
 from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
 
+from homeassistant.util import dt as dt_util
 from homeassistant.helpers.aiohttp_client import (
     async_get_clientsession,
 )
@@ -140,9 +140,7 @@ class KNBSBCoordinator(DataUpdateCoordinator):
     ):
         """Maak timezone-aware datetime van wedstrijd."""
 
-        timezone = ZoneInfo(
-            self.hass.config.time_zone
-        )
+        timezone = dt_util.get_default_time_zone()
 
         match_dt = datetime.strptime(
             f"{match.date} {match.time}",
@@ -561,11 +559,7 @@ class KNBSBCoordinator(DataUpdateCoordinator):
         )
 
 
-        now = datetime.now(
-            ZoneInfo(
-                self.hass.config.time_zone
-            )
-        )
+        now = dt_util.now()
 
 
         result = {
@@ -749,11 +743,7 @@ class KNBSBCoordinator(DataUpdateCoordinator):
             )
 
 
-            now = datetime.now(
-                ZoneInfo(
-                    self.hass.config.time_zone
-                )
-            )
+            now = dt_util.now()
 
 
             for index, match in enumerate(
