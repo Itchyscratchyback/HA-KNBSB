@@ -68,12 +68,6 @@ Heb totaal overzicht van alle gevolgde teams. Voeg een team toe aan de integrati
 <img width="130%" height="130%" alt="screenshot-3" src="https://github.com/user-attachments/assets/7b0201b6-5469-4009-b607-ed334743df44"/>
 
 
-<img width="40%" height="40%" alt="image" src="https://github.com/user-attachments/assets/c73918ce-8947-4ca7-83d4-c0f5461aa4a9" /> <img width="40%" height="40%" alt="image" src="https://github.com/user-attachments/assets/ed827cf2-155c-4326-a306-37ea9293fa64" />
-
-
-
-
-
 # Functionaliteit
 
 ## Navigatie via Homeassistant in AndroidAuto (getest) of CarPlay (ongetest)
