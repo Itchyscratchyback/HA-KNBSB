@@ -46,8 +46,6 @@ De integratie controleert de URL en haalt bij het toevoegen meteen de wedstrijde
 https://www.knbsb.nl/competities/teams/#/clubs/<club-id>/teams/<team-id>/program?poolId=<poule-nummer>
 ```
 
-Een URL zonder `/program?poolId=...` (bijvoorbeeld de uitslagen- of standenpagina) wordt niet geaccepteerd.
-
 ### OpenRouteService API-sleutel
 
 1. Maak een gratis account op [openrouteservice.org](https://openrouteservice.org/dev/#/signup).
