@@ -44,9 +44,57 @@ async def _async_register_card(hass: HomeAssistant) -> None:
     )
 
     version = card_path.stat().st_mtime_ns
-    add_extra_js_url(hass, f"{CARD_URL_BASE}/{CARD_FILE}?v={version}")
+    url = f"{CARD_URL_BASE}/{CARD_FILE}?v={version}"
+
+    if await _async_register_resource(hass, url):
+        domain_data["card_registered"] = True
+        return
+
+    add_extra_js_url(hass, url)
 
     domain_data["card_registered"] = True
+
+
+async def _async_register_resource(hass: HomeAssistant, url: str) -> bool:
+    """Add or update the card as a Lovelace resource (storage mode only)."""
+
+    lovelace = hass.data.get("lovelace")
+
+    if lovelace is None:
+        return False
+
+    resources = (
+        lovelace.get("resources")
+        if isinstance(lovelace, dict)
+        else getattr(lovelace, "resources", None)
+    )
+
+    if resources is None or not hasattr(resources, "async_create_item"):
+        return False
+
+    try:
+        if not getattr(resources, "loaded", True):
+            await resources.async_load()
+            resources.loaded = True
+
+        base = f"{CARD_URL_BASE}/{CARD_FILE}"
+
+        for item in resources.async_items():
+            if item["url"].split("?")[0] == base:
+                if item["url"] != url:
+                    await resources.async_update_item(
+                        item["id"], {"res_type": "module", "url": url}
+                    )
+                return True
+
+        await resources.async_create_item(
+            {"res_type": "module", "url": url}
+        )
+    except Exception as err:  # noqa: BLE001
+        _LOGGER.warning("KNBSB could not register card resource: %s", err)
+        return False
+
+    return True
 
 
 async def async_setup_entry(
