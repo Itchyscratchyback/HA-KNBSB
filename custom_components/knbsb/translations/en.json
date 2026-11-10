@@ -2,28 +2,28 @@
   "config": {
     "step": {
       "user": {
-        "title": "KNBSB instellen",
-        "description": "Configureer het KNBSB-team en de reisinformatie.",
+        "title": "Configure KNBSB",
+        "description": "Configure the KNBSB team and travel information.",
         "data": {
           "team_url": "KNBSB Team URL",
-          "ors_api_key": "OpenRouteService API-sleutel",
-          "away_arrival_minutes": "Tijd vooraf aanwezig bij uitwedstrijd (+5 min parkeren)",
-          "home_arrival_minutes": "Tijd vooraf aanwezig bij thuiswedstrijd (+5 min parkeren)"
+          "ors_api_key": "OpenRouteService API-key",
+          "away_arrival_minutes": "Arrival time before away game (+5 min parking)",
+          "home_arrival_minutes": "Arrival time before home game (+5 min parking)"
         },
         "data_description": {
-          "team_url": "Plak de URL van het teamprogramma van knbsb.nl.",
-          "ors_api_key": "Persoonlijke API-sleutel voor OpenRouteService / HeiGIT.",
-          "away_arrival_minutes": "Aantal minuten dat je vóór een uitwedstrijd aanwezig wilt zijn. De integratie telt automatisch 5 minuten parkeertijd op.",
-          "home_arrival_minutes": "Aantal minuten dat je vóór een thuiswedstrijd aanwezig wilt zijn. De integratie telt automatisch 5 minuten parkeertijd op."
+          "team_url": "Paste the URL of the team schedule from knbsb.nl.",
+          "ors_api_key": "Personal API key for OpenRouteService / HeiGIT.",
+          "away_arrival_minutes": "Number of minutes you want to arrive before an away game. The integration automatically adds 5 minutes for parking.",
+          "home_arrival_minutes": "Number of minutes you want to arrive before a home game. The integration automatically adds 5 minutes for parking."
         }
       }
     },
     "error": {
-      "invalid_url": "Ongeldige URL. Gebruik een teamprogramma-URL van knbsb.nl.",
-      "cannot_connect": "Kan geen wedstrijden ophalen bij KNBSB/FOYS. Controleer de URL en je internetverbinding en probeer het opnieuw."
+      "invalid_url": "Invalid URL. Please use a team schedule URL from knbsb.nl.",
+      "cannot_connect": "Unable to retrieve games from KNBSB/FOYS. Check the URL and your internet connection, then try again."
     },
     "abort": {
-      "already_configured": "Dit KNBSB-team is al geconfigureerd."
+      "already_configured": "This KNBSB team has already been configured."
     }
   }
 }
