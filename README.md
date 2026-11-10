@@ -88,31 +88,7 @@ Zie hieronder de view die de integratie ondersteunt samen met de meegeleverde KN
 
 <img width="40%" height="40%" alt="competitie-stand" src="https://github.com/user-attachments/assets/c04cade5-e38a-4b2b-a65e-e362b2dbd559" />
 
-
-
-
-
 ## Functionaliteit
-
-### Wedstrijdinformatie
-
-De integratie haalt het actuele en toekomstige wedstrijdprogramma op van het ingestelde KNBSB-team.
-
-Beschikbare informatie omvat onder andere:
-
-- Volgende tegenstander
-- Wedstrijddatum
-- Wedstrijdtijd
-- Thuis / Uit
-- Competitie
-- Wedstrijdlocatie
-- Adres
-- Thuisteam
-- Uitteam
-- Teamlogo's
-- Aantal resterende wedstrijden
-- Volledig wedstrijdprogramma
-
 
 ## Navigatie via Homeassistant in AndroidAuto (getest) of CarPlay (ongetest)
 Deze integratie levert een sensor die door HA in AA modus kan worden gebruikt als navigatie actie
