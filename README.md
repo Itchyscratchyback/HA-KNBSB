@@ -54,30 +54,30 @@ https://www.knbsb.nl/competities/teams/#/clubs/<club-id>/teams/<team-id>/program
 
 > **Privacy:** voor de routeberekening worden de coördinaten van je thuislocatie (`zone.home`) en van de wedstrijdlocaties naar OpenRouteService (HeiGIT, `api.heigit.org`) gestuurd. Andere gegevens worden daarheen niet verstuurd.
 
-### Dashboardkaart
-
-De kaart zit in de integratie (`custom_components/knbsb/www/`) en wordt bij het opstarten automatisch geladen; je hoeft geen aparte resource of HACS-plugin toe te voegen. 
-Voeg de kaart toe aan een dashboard met type `custom:knbsb-schedule-card`.
 
 
-Zie hieronder de view die de integratie ondersteunt samen met de meegeleverde KNBSB Schedule card
+# Dashboardkaart
+
+De kaart zit in de integratie. Voeg de kaart toe aan een dashboard met type `custom:knbsb-schedule-card`.
+
+
 
 ---
-### Onderstaande is mogelijk met de KNBSB Schedule card (meegeleverd)
+## Overzicht
+Heb totaal voerzicht over alle gevolgde teams. Voeg een team toe aan de integratie en druk op de sync knop. (werkt hetzelfde bij verwijderen van een team)
 <img width="130%" height="130%" alt="screenshot-3" src="https://github.com/user-attachments/assets/7b0201b6-5469-4009-b607-ed334743df44"/>
 
 
 <img width="40%" height="40%" alt="image" src="https://github.com/user-attachments/assets/c73918ce-8947-4ca7-83d4-c0f5461aa4a9" /> <img width="40%" height="40%" alt="image" src="https://github.com/user-attachments/assets/ed827cf2-155c-4326-a306-37ea9293fa64" />
 
-<img width="40%" height="40%" alt="uitslagen" src="https://github.com/user-attachments/assets/11e937d2-0b37-470a-8ce5-2a518dcec1fe" />
 
-<img width="40%" height="40%" alt="heatmap" src="https://github.com/user-attachments/assets/e39652a2-bd78-4820-b9b3-bc99c1d2215e" />
 
-<img width="40%" height="40%" alt="competitie-stand" src="https://github.com/user-attachments/assets/c04cade5-e38a-4b2b-a65e-e362b2dbd559" />
 
-## Functionaliteit
+
+# Functionaliteit
 
 ## Navigatie via Homeassistant in AndroidAuto (getest) of CarPlay (ongetest)
+### Navigeer altijd naar het jusite addres in één druk op de knop
 Deze integratie levert een sensor die door HA in AA modus kan worden gebruikt als navigatie actie
 
 In AndroidAuto modus open; Homeassistant -> Navigation -> Kies de Match
@@ -85,5 +85,26 @@ In AndroidAuto modus open; Homeassistant -> Navigation -> Kies de Match
 Zie hieronder een voorbeeld van een match:
 
 <img width="20%" height="20%" alt="HA-AA-Navigatie-knop" src="https://github.com/user-attachments/assets/e1fc0dae-9ab9-4491-be40-2f5f7244ae53" />
+
+## Uitslagen
+Direct zicht op de uitslagen in de pool, filter gemakkelijk wie je wel en niet wilt zien. Eigen team krijgt gouden rand bij winst.
+
+<img width="40%" height="40%" alt="uitslagen" src="https://github.com/user-attachments/assets/11e937d2-0b37-470a-8ce5-2a518dcec1fe" />
+
+## Notities
+Laat notities achter bij iedere wedstrijd, notities gaan mee van de dagkaart naar de uitslag kaart.
+
+<img width="40%" height="40%" alt="notities" src="https://github.com/user-attachments/assets/a0bcef24-a224-418c-8ff7-6a3dbe121070" />
+
+
+## Heatmaps
+Registreer waar de tegenstander gedurende de match het beeste hit.
+
+<img width="40%" height="40%" alt="heatmap" src="https://github.com/user-attachments/assets/e39652a2-bd78-4820-b9b3-bc99c1d2215e" />
+
+## Competitie stand
+Altijd zicht op de laatste competitie stand, duidelijk zicht op wie omhoog kruipt en wie weer zakt DMV kleurcodering (Zal gedurende de competitie aan worden gesleuteld voor nog meer inzicht)
+
+<img width="40%" height="40%" alt="competitie-stand" src="https://github.com/user-attachments/assets/c04cade5-e38a-4b2b-a65e-e362b2dbd559" />
 
 ---
