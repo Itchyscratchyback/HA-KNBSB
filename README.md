@@ -64,7 +64,7 @@ De kaart zit in de integratie. Voeg de kaart toe aan een dashboard met type `cus
 
 ---
 ## Overzicht
-Heb totaal voerzicht over alle gevolgde teams. Voeg een team toe aan de integratie en druk op de sync knop. (werkt hetzelfde bij verwijderen van een team)
+Heb totaal overzicht van alle gevolgde teams. Voeg een team toe aan de integratie en druk op de sync knop. (werkt hetzelfde bij verwijderen van een team)
 <img width="130%" height="130%" alt="screenshot-3" src="https://github.com/user-attachments/assets/7b0201b6-5469-4009-b607-ed334743df44"/>
 
 
