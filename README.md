@@ -1,7 +1,3 @@
-ROADMAP:
-
-| ~~Basis versie met navigatie~~ | -> | ~~Multi-competition versie~~ | -> | ~~Wedstrijd uitslagen toevoegen aan matches~~| -> | ~~Alle wedstrijd uitslagen per team~~| -> | ~~Competitie stand~~ | -> | Winkans berekening | -> | Advies aan de hand van Competitie stand punten saldo en vergelijkbare matches | -> 
-
 # KNBSB voor Home Assistant
 
 Een custom Home Assistant-integratie voor KNBSB-competities.
@@ -9,7 +5,11 @@ Een custom Home Assistant-integratie voor KNBSB-competities.
 Hoofdpunten van deze integratie:
 
 - Wedstrijdinformatie
-- locaties
+-    Uitslagen
+-    Competitie stand
+-    Notities bij wedstrijden
+-    Heatmap bij wedstrijden
+-    locaties
 - kalender integratie
 - reisinformatie
 -   Afstand in KM
@@ -20,20 +20,19 @@ Hoofdpunten van deze integratie:
 -   One click Navigatie knop via de meegeleverde KNBSB Schedule card
 -   Navigatie via Android Auto | Apple carplay Homeassistant  Kies: **Navigatie** -> **knbsb_next_match_address**
 
-Voor rijafstand en reistijd wordt OpenRouteService.org gebruikt. Dit is een gratis service waar je kan registreren voor een eigen API key.
+Voor rijafstand en reistijd wordt OpenRouteService.org gebruikt. Dit is een gratis service waar moet registreren voor een eigen API key.
 
 > Dit is een onofficiële community-integratie en is niet verbonden aan of goedgekeurd door de KNBSB.
 
-## Installatie
+## Installatie via HACS
 
-1. Open **HACS** in Home Assistant, kies de drie puntjes rechtsboven > **Aangepaste repositories** en voeg `https://github.com/Itchyscratchyback/HA-KNBSB` toe met categorie **Integratie**.
-2. Zoek **KNBSB** in HACS, download de integratie en herstart Home Assistant.
-3. Ga naar **Instellingen > Apparaten & services > Integratie toevoegen** en kies **KNBSB**.
-4. Vul in:
+1. Zoek **KNBSB** in HACS, download de integratie en herstart Home Assistant.
+2. Ga naar **Instellingen > Apparaten & services > Integratie toevoegen** en kies **KNBSB**.
+3. Vul in:
    - **KNBSB Team URL**: zie hieronder.
    - **OpenRouteService API-sleutel**: zie hieronder.
    - **Tijd vooraf aanwezig** bij uit- en thuiswedstrijden (in minuten; er wordt automatisch 5 minuten parkeertijd bij opgeteld).
-5. Wil je meerdere teams volgen? Voeg de integratie opnieuw toe met de URL van het andere team.
+4. Wil je meerdere teams volgen? Voeg de integratie opnieuw toe met de URL van het andere team.
 
 De integratie controleert de URL en haalt bij het toevoegen meteen de wedstrijden op. Bij een foute URL of onbereikbare API zie je direct een foutmelding.
 
@@ -70,9 +69,9 @@ Uitslagen, standen, notities en heatmaps worden opgeslagen in `.storage/knbsb.hi
 
 ### Dashboardkaart
 
-De kaart zit in de integratie (`custom_components/knbsb/www/`) en wordt bij het opstarten automatisch geladen; je hoeft geen aparte resource of HACS-plugin toe te voegen. Voeg de kaart toe aan een dashboard met type `custom:knbsb-schedule-card`.
+De kaart zit in de integratie (`custom_components/knbsb/www/`) en wordt bij het opstarten automatisch geladen; je hoeft geen aparte resource of HACS-plugin toe te voegen. 
+Voeg de kaart toe aan een dashboard met type `custom:knbsb-schedule-card`.
 
-> Gebruik je de kaart nog als losse resource (`/hacsfiles/...` of `/local/...`)? Verwijder die onder **Instellingen > Dashboards > Resources**, anders wordt hij dubbel geladen.
 
 Zie hieronder de view die de integratie ondersteunt samen met de meegeleverde KNBSB Schedule card
 
@@ -82,6 +81,14 @@ Zie hieronder de view die de integratie ondersteunt samen met de meegeleverde KN
 
 
 <img width="40%" height="40%" alt="image" src="https://github.com/user-attachments/assets/c73918ce-8947-4ca7-83d4-c0f5461aa4a9" /> <img width="40%" height="40%" alt="image" src="https://github.com/user-attachments/assets/ed827cf2-155c-4326-a306-37ea9293fa64" />
+
+<img width="40%" height="40%" alt="uitslagen" src="https://github.com/user-attachments/assets/11e937d2-0b37-470a-8ce5-2a518dcec1fe" />
+
+<img width="40%" height="40%" alt="heatmap" src="https://github.com/user-attachments/assets/e39652a2-bd78-4820-b9b3-bc99c1d2215e" />
+
+<img width="40%" height="40%" alt="competitie-stand" src="https://github.com/user-attachments/assets/c04cade5-e38a-4b2b-a65e-e362b2dbd559" />
+
+
 
 
 
@@ -110,7 +117,7 @@ Beschikbare informatie omvat onder andere:
 ## Navigatie via Homeassistant in AndroidAuto (getest) of CarPlay (ongetest)
 Deze integratie levert een sensor die door HA in AA modus kan worden gebruikt als navigatie actie
 
-In AndroidAuto modus open Homeassistant -> Navigation -> Kies de Match
+In AndroidAuto modus open; Homeassistant -> Navigation -> Kies de Match
 
 Zie hieronder een voorbeeld van een match:
 
