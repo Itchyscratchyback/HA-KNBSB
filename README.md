@@ -19,6 +19,7 @@ Hoofdpunten van deze integratie:
 -   Instelbare tijd aanwezig voor wedstrijden thuis of uit (wordt meegenomen in vertrektijd)
 -   One click Navigatie knop via de meegeleverde KNBSB Schedule card
 -   Navigatie via Android Auto | Apple carplay Homeassistant  Kies: **Navigatie** -> **knbsb_next_match_address**
+-   Uitslagen, standen, notities en heatmaps worden opgeslagen in `.storage/knbsb.history` en getoond in de dashboardkaart.
 
 Voor rijafstand en reistijd wordt OpenRouteService.org gebruikt. Dit is een gratis service waar moet registreren voor een eigen API key.
 
@@ -54,18 +55,6 @@ Een URL zonder `/program?poolId=...` (bijvoorbeeld de uitslagen- of standenpagin
 3. Plak dit token in het veld **OpenRouteService API-sleutel**.
 
 > **Privacy:** voor de routeberekening worden de coördinaten van je thuislocatie (`zone.home`) en van de wedstrijdlocaties naar OpenRouteService (HeiGIT, `api.heigit.org`) gestuurd. Andere gegevens worden daarheen niet verstuurd.
-
-### Entiteiten
-
-Per gevolgd team krijg je:
-
-- Sensoren voor de volgende wedstrijd: tegenstander, datum, tijd, locatie, adres (navigatie), logo, thuis/uit en aantal resterende wedstrijden.
-- Reissensoren: rijafstand, reistijd, vertrektijd en aankomsttijd.
-- Sensoren voor teamnaam, teamlogo, tegenstander en tegenstanderlogo.
-- Een **Schedule**-sensor met het volledige programma.
-- Een **kalender** (`calendar.*`) met alle komende wedstrijden.
-
-Uitslagen, standen, notities en heatmaps worden opgeslagen in `.storage/knbsb.history` en getoond in de dashboardkaart.
 
 ### Dashboardkaart
 
